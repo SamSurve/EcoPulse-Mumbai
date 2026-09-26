@@ -1,5 +1,6 @@
 import os
 import sys
+import warnings
 from datetime import datetime
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, status
@@ -7,6 +8,14 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
+from starlette.exceptions import StarletteDeprecationWarning
+
+# Suppress StarletteDeprecationWarning on RFC 9110 HTTP 422 name transition
+warnings.filterwarnings("ignore", category=StarletteDeprecationWarning, message=r".*HTTP_422_UNPROCESSABLE_ENTITY.*")
+
+# Canonical HTTP 422 Unprocessable Content status code (RFC 9110 compliant)
+HTTP_422_STATUS = getattr(status, "HTTP_422_UNPROCESSABLE_CONTENT", 422)
+
 
 # Ensure workspace and backend roots are in sys.path for reliable module resolution
 backend_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -151,7 +160,7 @@ async def custom_validation_exception_handler(request: Request, exc: RequestVali
     first_error = errors[0]["msg"] if errors else "Invalid request parameters"
     first_loc = " -> ".join(str(loc) for loc in errors[0]["loc"]) if errors and "loc" in errors[0] else "parameter"
     return JSONResponse(
-        status_code=422,
+        status_code=HTTP_422_STATUS,
         content={
             "error": "Unprocessable Entity",
             "detail": f"Validation failed for {first_loc}: {first_error}",
