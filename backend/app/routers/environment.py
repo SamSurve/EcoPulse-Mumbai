@@ -1,42 +1,12 @@
 import logging
 from fastapi import APIRouter, HTTPException, Query, Path
-from app.models.schemas import UnifiedEnvironmentResponse, ErrorResponse, AreaComparisonResponse
+from app.models.schemas import UnifiedEnvironmentResponse, ErrorResponse
 from app.services.environment_service import environment_service
 from app.data.locations import is_valid_location
 
 logger = logging.getLogger("ecopulse.environment")
 
 router = APIRouter(prefix="/api/environment", tags=["Environmental Intelligence"])
-
-
-@router.get(
-    "/compare",
-    response_model=AreaComparisonResponse,
-    responses={
-        400: {"model": ErrorResponse, "description": "Cannot compare a location to itself"},
-        404: {"model": ErrorResponse, "description": "One or both locations not found"},
-        422: {"model": ErrorResponse, "description": "Invalid query parameters"}
-    }
-)
-def compare_environment_areas(
-    location_a: str = Query(
-        ...,
-        min_length=2,
-        max_length=50,
-        pattern=r"^[a-zA-Z0-9_\-]+$",
-        description="First Mumbai location ID (e.g., borivali, dadar)"
-    ),
-    location_b: str = Query(
-        ...,
-        min_length=2,
-        max_length=50,
-        pattern=r"^[a-zA-Z0-9_\-]+$",
-        description="Second Mumbai location ID (e.g., andheri, powai)"
-    )
-):
-    """Compare two Mumbai micro-locations side-by-side across environmental metrics."""
-    from app.routers.greenery_heat import compare_areas
-    return compare_areas(location_a=location_a, location_b=location_b)
 
 
 @router.get(
