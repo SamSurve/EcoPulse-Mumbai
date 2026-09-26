@@ -1,0 +1,1275 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EcoPulse Mumbai — Environmental Intelligence Platform</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#ecfdf5',
+              100: '#d1fae5',
+              400: '#34d399',
+              500: '#10b981',
+              600: '#059669',
+              700: '#047857',
+              800: '#065f46',
+              900: '#064e3b',
+            },
+            slate: {
+              850: '#111827',
+              900: '#0b0f19',
+              950: '#060911',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Leaflet CSS & JS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    /* Custom scrollbar and smooth transitions */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #0b0f19; }
+    ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #334155; }
+    .glass-card {
+      background: rgba(17, 24, 39, 0.75);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+    }
+    .leaflet-popup-content-wrapper {
+      background: #111827 !important;
+      color: #f3f4f6 !important;
+      border: 1px solid rgba(255, 255, 255, 0.1) !important;
+      border-radius: 8px !important;
+    }
+    .leaflet-popup-tip {
+      background: #111827 !important;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen antialiased flex flex-col font-sans selection:bg-brand-500 selection:text-white">
+
+  <!-- TOP NAVIGATION HEADER -->
+  <header class="sticky top-0 z-50 glass-card border-b border-slate-800/80 px-4 lg:px-8 py-3.5 transition-all">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      
+      <!-- Brand Logo & Title -->
+      <div class="flex items-center gap-3">
+        <div class="h-10 w-10 rounded-xl bg-gradient-to-tr from-brand-600 to-teal-400 flex items-center justify-center shadow-lg shadow-brand-500/20 ring-1 ring-white/20">
+          <i data-lucide="activity" class="h-5 w-5 text-white"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-xl font-bold tracking-tight text-white flex items-center gap-1.5">
+              EcoPulse <span class="text-brand-400 font-light">Mumbai</span>
+            </h1>
+            <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-brand-500/10 text-brand-400 border border-brand-500/20">
+              v1.0 MVP
+            </span>
+          </div>
+          <p class="text-xs text-slate-400 font-medium">Environmental Intelligence & Microclimate Analytics</p>
+        </div>
+      </div>
+
+      <!-- Center / Location Selector -->
+      <div class="flex items-center gap-3">
+        <div class="relative flex-1 md:w-72">
+          <label for="location-select" class="sr-only">Select Mumbai Area</label>
+          <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+            <i data-lucide="map-pin" class="h-4 w-4 text-brand-400"></i>
+          </div>
+          <select id="location-select" class="w-full pl-9 pr-10 py-2 bg-slate-900 border border-slate-700/80 rounded-lg text-sm font-medium text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors cursor-pointer appearance-none">
+            <option value="" disabled selected>Loading locations...</option>
+          </select>
+          <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
+            <i data-lucide="chevron-down" class="h-4 w-4"></i>
+          </div>
+        </div>
+
+        <button id="refresh-btn" title="Refresh Live Data" class="p-2 rounded-lg bg-slate-900 border border-slate-700 text-slate-300 hover:text-white hover:border-slate-600 transition-colors active:scale-95">
+          <i data-lucide="rotate-cw" class="h-4 w-4" id="refresh-icon"></i>
+        </button>
+      </div>
+
+      <!-- Right Meta Status -->
+      <div class="hidden lg:flex items-center gap-4 text-xs">
+        <div class="flex items-center gap-1.5 text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20">
+          <span class="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span class="font-medium">Backend Live (FastAPI)</span>
+        </div>
+        <div class="text-slate-400">
+          Updated: <span id="last-updated-text" class="text-slate-300 font-mono">--:--:--</span>
+        </div>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- MAIN DASHBOARD CONTENT -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 lg:px-8 py-6 space-y-8">
+
+    <!-- ACTIVE LOCATION SUMMARY BANNER -->
+    <div id="location-banner" class="glass-card rounded-2xl p-5 border border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-gradient-to-r from-slate-900 via-slate-900/90 to-brand-950/30">
+      <div>
+        <div class="flex items-center gap-2.5 flex-wrap">
+          <h2 id="active-location-name" class="text-2xl font-extrabold text-white tracking-tight">Borivali</h2>
+          <span id="active-ward-badge" class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-800 text-slate-300 border border-slate-700">Ward R/C</span>
+          <span id="active-zone-badge" class="px-2.5 py-0.5 rounded-full text-xs font-medium bg-brand-500/10 text-brand-300 border border-brand-500/20">Western Suburbs</span>
+          <span id="active-station-badge" class="text-xs text-slate-400 flex items-center gap-1">
+            <i data-lucide="radio" class="h-3 w-3 text-brand-400"></i>
+            <span id="active-station-text">CAAQM Station: Borivali East</span>
+          </span>
+        </div>
+        <p class="text-xs text-slate-400 mt-1">Coordinates: <span id="active-coords" class="font-mono text-slate-300">19.2307° N, 72.8567° E</span> | Grid assimilation: Sentinel-2 & Open-Meteo CAMS</p>
+      </div>
+
+      <div class="flex items-center gap-2 self-start md:self-auto">
+        <a href="#comparison-section" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition">
+          <i data-lucide="git-compare" class="h-3.5 w-3.5 text-teal-400"></i> Compare Area
+        </a>
+        <a href="#map-section" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition">
+          <i data-lucide="map" class="h-3.5 w-3.5 text-brand-400"></i> View Map
+        </a>
+      </div>
+    </div>
+
+    <!-- ALERTS CONTAINER (Shows only if active alerts exist) -->
+    <div id="alerts-container" class="space-y-2"></div>
+
+    <!-- SECTION 1: TOP-LEVEL OVERVIEW CARDS (5 key physical indicators) -->
+    <section>
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="text-xs uppercase tracking-wider font-bold text-slate-400">Current Environmental Conditions</h3>
+        <span class="text-[11px] text-slate-500">Auto-refreshed via Open-Meteo & CAAQM</span>
+      </div>
+
+      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3.5">
+        <!-- AQI Card -->
+        <div class="glass-card rounded-xl p-4 border border-slate-800 flex flex-col justify-between hover:border-slate-700 transition">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-medium text-slate-400">CPCB AQI</span>
+            <span id="aqi-prov-badge" class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-800 text-slate-400">MODEL</span>
+          </div>
+          <div class="my-2">
+            <div id="card-aqi-value" class="text-3xl font-black text-white">--</div>
+            <div id="card-aqi-category" class="inline-block mt-1 px-2 py-0.5 rounded text-xs font-bold bg-slate-800 text-slate-300">
+              Loading...
+            </div>
+          </div>
+          <div class="text-[11px] text-slate-400 truncate">
+            Dominant: <span id="card-dominant-pollutant" class="text-slate-200 font-semibold">--</span>
+          </div>
+        </div>
+
+        <!-- PM2.5 Card -->
+        <div class="glass-card rounded-xl p-4 border border-slate-800 flex flex-col justify-between hover:border-slate-700 transition">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-medium text-slate-400">PM2.5 Loading</span>
+            <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-800 text-slate-400">µg/m³</span>
+          </div>
+          <div class="my-2">
+            <div id="card-pm25-value" class="text-3xl font-black text-white">--</div>
+            <div id="card-pm25-sub" class="text-xs text-slate-400 mt-1">
+              Sub-Index: <span id="card-pm25-sub-val" class="text-slate-200 font-semibold">--</span>
+            </div>
+          </div>
+          <div class="text-[11px] text-slate-400 truncate">
+            Standard: <span class="text-slate-300 font-mono">60 µg/m³ max</span>
+          </div>
+        </div>
+
+        <!-- Temperature & Heat Index -->
+        <div class="glass-card rounded-xl p-4 border border-slate-800 flex flex-col justify-between hover:border-slate-700 transition">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-medium text-slate-400">Temperature</span>
+            <i data-lucide="thermometer" class="h-3.5 w-3.5 text-amber-400"></i>
+          </div>
+          <div class="my-2">
+            <div id="card-temp-value" class="text-3xl font-black text-white">--°C</div>
+            <div class="text-xs text-slate-400 mt-1">
+              Heat Index: <span id="card-apparent-temp" class="text-amber-300 font-semibold">--°C</span>
+            </div>
+          </div>
+          <div class="text-[11px] text-slate-400 truncate">
+            Humidity: <span id="card-humidity-value" class="text-slate-200 font-mono">--%</span>
+          </div>
+        </div>
+
+        <!-- Surface Wind & Dispersion -->
+        <div class="glass-card rounded-xl p-4 border border-slate-800 flex flex-col justify-between hover:border-slate-700 transition">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-medium text-slate-400">Wind & Dispersion</span>
+            <i data-lucide="wind" class="h-3.5 w-3.5 text-teal-400"></i>
+          </div>
+          <div class="my-2">
+            <div id="card-wind-value" class="text-3xl font-black text-white">-- <span class="text-sm font-normal text-slate-400">km/h</span></div>
+            <div id="card-wind-cardinal" class="text-xs text-slate-400 mt-1">
+              Direction: <span id="card-wind-dir" class="text-slate-200 font-semibold">--</span>
+            </div>
+          </div>
+          <div class="text-[11px] text-slate-400 truncate">
+            Ventilation: <span id="card-ventilation-status" class="text-brand-400 font-semibold">Nominal</span>
+          </div>
+        </div>
+
+        <!-- Surface Heat Index (Feature 2) -->
+        <div class="glass-card rounded-xl p-4 border border-slate-800 flex flex-col justify-between hover:border-slate-700 transition col-span-2 md:col-span-1">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-medium text-slate-400">Surface Heat Index</span>
+            <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-800 text-slate-400">LANDSAT</span>
+          </div>
+          <div class="my-2">
+            <div id="card-heat-index-value" class="text-3xl font-black text-white">--/10</div>
+            <div id="card-heat-class" class="inline-block mt-1 px-2 py-0.5 rounded text-xs font-bold bg-slate-800 text-slate-300">
+              --
+            </div>
+          </div>
+          <div class="text-[11px] text-slate-400 truncate">
+            Built-Up Density: <span id="card-builtup-value" class="text-slate-200 font-mono">--%</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 2 & 3 GRID: RISK ENGINE + GREENERY & HEAT DUAL COLUMN -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+      
+      <!-- ECOPULSE RISK ENGINE (7 Cols) -->
+      <section class="lg:col-span-7 glass-card rounded-2xl p-6 border border-slate-800 flex flex-col justify-between relative overflow-hidden bg-gradient-to-br from-slate-900 to-slate-950">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
+          <div class="flex items-center gap-2">
+            <i data-lucide="shield-alert" class="h-4 w-4 text-brand-400"></i>
+            <h3 class="text-sm font-bold uppercase tracking-wider text-slate-300">EcoPulse Environmental Risk Engine</h3>
+          </div>
+          <span class="text-[10px] font-mono uppercase bg-brand-500/10 text-brand-300 px-2 py-0.5 rounded border border-brand-500/20">
+            Multi-Factor Analysis
+          </span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-center flex-1">
+          
+          <!-- Gauge & Big Score -->
+          <div class="md:col-span-5 flex flex-col items-center justify-center text-center p-3 rounded-xl bg-slate-950/60 border border-slate-800/80">
+            <div class="relative w-36 h-36 flex items-center justify-center">
+              <svg class="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="42" stroke="currentColor" stroke-width="8" class="text-slate-800" fill="transparent"/>
+                <circle id="risk-score-circle" cx="50" cy="50" r="42" stroke="currentColor" stroke-width="8" stroke-dasharray="264" stroke-dashoffset="130" stroke-linecap="round" class="text-brand-500 transition-all duration-1000 ease-out" fill="transparent"/>
+              </svg>
+              <div class="absolute inset-0 flex flex-col items-center justify-center">
+                <span id="risk-score-val" class="text-4xl font-extrabold text-white tracking-tight">--</span>
+                <span class="text-[10px] font-bold uppercase text-slate-400">Out of 100</span>
+              </div>
+            </div>
+
+            <div class="mt-2.5">
+              <span id="risk-level-badge" class="px-3 py-1 rounded-full text-xs font-extrabold bg-slate-800 text-slate-200 uppercase tracking-wide">
+                Calculating...
+              </span>
+            </div>
+            <div class="text-[11px] text-slate-400 mt-2">
+              Primary Stressor: <br/><span id="risk-primary-stressor" class="text-slate-200 font-semibold">--</span>
+            </div>
+          </div>
+
+          <!-- Contributing Factors Bars -->
+          <div class="md:col-span-7 space-y-3">
+            <div class="text-xs font-semibold text-slate-300 mb-1 flex items-center justify-between">
+              <span>Contributing Physical Stressors</span>
+              <span class="text-[10px] text-slate-400">Component Weight</span>
+            </div>
+
+            <!-- Air Quality (40%) -->
+            <div>
+              <div class="flex justify-between text-xs mb-1">
+                <span class="text-slate-400">Air Pollution ($PM_{2.5}$, AQI)</span>
+                <span id="factor-air-score" class="font-mono text-slate-300">--%</span>
+              </div>
+              <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                <div id="factor-air-bar" class="bg-amber-400 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+              </div>
+            </div>
+
+            <!-- Thermal Stress (25%) -->
+            <div>
+              <div class="flex justify-between text-xs mb-1">
+                <span class="text-slate-400">Thermal Heat Load</span>
+                <span id="factor-thermal-score" class="font-mono text-slate-300">--%</span>
+              </div>
+              <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                <div id="factor-thermal-bar" class="bg-rose-400 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+              </div>
+            </div>
+
+            <!-- Urban Surface Heat (20%) -->
+            <div>
+              <div class="flex justify-between text-xs mb-1">
+                <span class="text-slate-400">Built-Up Surface Heat Retention</span>
+                <span id="factor-surface-score" class="font-mono text-slate-300">--%</span>
+              </div>
+              <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                <div id="factor-surface-bar" class="bg-orange-400 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+              </div>
+            </div>
+
+            <!-- Dispersion (15%) -->
+            <div>
+              <div class="flex justify-between text-xs mb-1">
+                <span class="text-slate-400">Atmospheric Stagnation Penalty</span>
+                <span id="factor-dispersion-score" class="font-mono text-slate-300">--%</span>
+              </div>
+              <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                <div id="factor-dispersion-bar" class="bg-cyan-400 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+              </div>
+            </div>
+
+            <!-- Vegetative Buffer Pill -->
+            <div class="pt-2 flex items-center justify-between text-xs border-t border-slate-800/80">
+              <span class="text-slate-400">Vegetative Cooling Offset:</span>
+              <span id="factor-veg-status" class="px-2 py-0.5 rounded text-[10px] font-semibold bg-brand-500/10 text-brand-300 border border-brand-500/20">--</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Plain-English Explanation -->
+        <div class="mt-4 pt-4 border-t border-slate-800/80">
+          <div class="p-3.5 rounded-xl bg-slate-900/90 border border-slate-800 text-xs leading-relaxed text-slate-300">
+            <span class="font-semibold text-brand-400 block mb-1">Explainable Reasoning:</span>
+            <p id="risk-explanation-text">Analyzing atmospheric and spatial metrics...</p>
+          </div>
+          <p class="text-[10px] text-slate-400 mt-2 italic">
+            Disclaimer: Application-level environmental risk indicator. Not an official CPCB/BMC or medical risk classification.
+          </p>
+        </div>
+      </section>
+
+      <!-- GREENERY & HEAT DUAL METRICS (5 Cols) -->
+      <section class="lg:col-span-5 glass-card rounded-2xl p-6 border border-slate-800 flex flex-col justify-between bg-gradient-to-br from-slate-900 to-slate-950">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
+          <div class="flex items-center gap-2">
+            <i data-lucide="trees" class="h-4 w-4 text-emerald-400"></i>
+            <h3 class="text-sm font-bold uppercase tracking-wider text-slate-300">Greenery & Heat Analysis</h3>
+          </div>
+          <span class="text-[10px] font-mono text-slate-400 bg-slate-800 px-2 py-0.5 rounded">Sentinel-2 & Landsat</span>
+        </div>
+
+        <!-- Comparative Metrics Grid -->
+        <div class="space-y-4 flex-1">
+          <!-- NDVI Gauge Card -->
+          <div class="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+                <i data-lucide="sprout" class="h-3.5 w-3.5 text-emerald-400"></i>
+                Vegetative Vigor (NDVI 10m)
+              </span>
+              <span id="greenery-class-badge" class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">--</span>
+            </div>
+            <div class="flex items-end justify-between">
+              <div>
+                <span id="greenery-ndvi-val" class="text-2xl font-black text-white">--</span>
+                <span class="text-xs text-slate-400 ml-1">mean</span>
+              </div>
+              <div class="text-right text-xs text-slate-400">
+                Tree Canopy: <span id="greenery-canopy-val" class="text-slate-200 font-semibold">--%</span>
+              </div>
+            </div>
+            <!-- Progress bar -->
+            <div class="w-full bg-slate-800 h-2 rounded-full mt-2.5 overflow-hidden">
+              <div id="greenery-bar" class="bg-gradient-to-r from-emerald-500 to-teal-400 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+            </div>
+            <div class="text-[10px] text-slate-400 mt-1.5 flex justify-between">
+              <span>Sparse Built-Up (<0.20)</span>
+              <span>High Forest (>0.50)</span>
+            </div>
+          </div>
+
+          <!-- Surface Heat Card -->
+          <div class="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+                <i data-lucide="flame" class="h-3.5 w-3.5 text-orange-400"></i>
+                Landsat Surface Thermal Index
+              </span>
+              <span id="heat-class-badge" class="px-2 py-0.5 rounded text-[10px] font-bold bg-orange-500/10 text-orange-400 border border-orange-500/20">--</span>
+            </div>
+            <div class="flex items-end justify-between">
+              <div>
+                <span id="heat-index-val" class="text-2xl font-black text-white">--</span>
+                <span class="text-xs text-slate-400 ml-1">/ 10</span>
+              </div>
+              <div class="text-right text-xs text-slate-400">
+                Comfort: <span id="heat-comfort-val" class="text-slate-200 font-semibold">--</span>
+              </div>
+            </div>
+            <!-- Progress bar -->
+            <div class="w-full bg-slate-800 h-2 rounded-full mt-2.5 overflow-hidden">
+              <div id="heat-bar" class="bg-gradient-to-r from-amber-500 to-rose-500 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+            </div>
+            <div class="text-[10px] text-slate-400 mt-1.5 flex justify-between">
+              <span>Low Heat (1-4)</span>
+              <span>Extreme Island (>8)</span>
+            </div>
+          </div>
+
+          <!-- Non-Causal Correlation Callout -->
+          <div class="p-3 rounded-lg bg-slate-900 border border-slate-800 text-[11px] text-slate-300 leading-relaxed">
+            <div class="flex items-center gap-1.5 font-semibold text-teal-400 mb-1">
+              <i data-lucide="info" class="h-3.5 w-3.5"></i>
+              Spatial Microclimate Association
+            </div>
+            <p id="greenery-heat-note">
+              Higher impervious built-up surface is consistently associated with elevated thermal storage and subdued vegetative cooling.
+            </p>
+          </div>
+        </div>
+
+        <div class="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400">
+          <span>5-Yr Vegetative Trend: <strong id="greenery-trend-val" class="text-slate-200">--%</strong></span>
+          <span class="font-mono text-[10px] text-slate-400">SATELLITE_BASELINE</span>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- SECTION 4: 72-HOUR ENVIRONMENTAL FORECAST -->
+    <section class="glass-card rounded-2xl p-6 border border-slate-800">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-800 pb-4 mb-5">
+        <div>
+          <div class="flex items-center gap-2">
+            <i data-lucide="calendar-clock" class="h-5 w-5 text-brand-400"></i>
+            <h3 class="text-base font-bold text-white tracking-tight">72-Hour Environmental & Atmospheric Forecast</h3>
+            <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-brand-500/10 text-brand-300 border border-brand-500/20 uppercase">
+              FORECAST
+            </span>
+          </div>
+          <p id="forecast-trend-summary" class="text-xs text-slate-300 mt-1">Loading 72-hour forecast projection...</p>
+        </div>
+
+        <!-- Metric Switcher Pills -->
+        <div class="flex items-center gap-1.5 bg-slate-900 p-1 rounded-lg border border-slate-800 self-start md:self-auto">
+          <button id="chart-tab-temp" class="px-2.5 py-1 text-xs font-medium rounded-md bg-brand-600 text-white transition">Temperature</button>
+          <button id="chart-tab-pm25" class="px-2.5 py-1 text-xs font-medium rounded-md text-slate-400 hover:text-white transition">PM2.5</button>
+          <button id="chart-tab-wind" class="px-2.5 py-1 text-xs font-medium rounded-md text-slate-400 hover:text-white transition">Wind Speed</button>
+        </div>
+      </div>
+
+      <!-- Chart Canvas Container -->
+      <div class="relative h-64 w-full">
+        <canvas id="forecastChart"></canvas>
+      </div>
+
+      <!-- 3 Daily Summaries -->
+      <div id="forecast-daily-cards" class="grid grid-cols-1 md:grid-cols-3 gap-3.5 mt-5 pt-5 border-t border-slate-800">
+        <!-- Injected via JavaScript -->
+      </div>
+    </section>
+
+    <!-- SECTION 5: AIR QUALITY & MICROCLIMATE IN-DEPTH MATRIX -->
+    <section class="glass-card rounded-2xl p-6 border border-slate-800">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
+        <div class="flex items-center gap-2">
+          <i data-lucide="wind" class="h-4 w-4 text-cyan-400"></i>
+          <h3 class="text-sm font-bold uppercase tracking-wider text-slate-300">Pollutant Concentration Channels (CPCB Standard)</h3>
+        </div>
+        <span class="text-[11px] text-slate-400">Zero-Fabrication Sensor Channel Monitoring</span>
+      </div>
+
+      <div id="pollutants-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+        <!-- Injected dynamically for PM2.5, PM10, NO2, SO2, CO, O3 -->
+      </div>
+    </section>
+
+    <!-- SECTION 6: INTERACTIVE MUMBAI ENVIRONMENTAL MAP -->
+    <section id="map-section" class="glass-card rounded-2xl p-6 border border-slate-800">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4 mb-4">
+        <div>
+          <div class="flex items-center gap-2">
+            <i data-lucide="map" class="h-5 w-5 text-emerald-400"></i>
+            <h3 class="text-base font-bold text-white tracking-tight">Mumbai Spatial Intelligence Map</h3>
+          </div>
+          <p class="text-xs text-slate-400 mt-1">Explore all 14 registered micro-locations across MMR. Click any marker to load area analytics.</p>
+        </div>
+
+        <!-- Layer Selector Toggle -->
+        <div class="flex items-center gap-2 text-xs">
+          <span class="text-slate-400 font-medium">Layer:</span>
+          <div class="flex items-center bg-slate-900 rounded-lg p-1 border border-slate-800">
+            <button id="map-layer-ndvi" class="px-2.5 py-1 rounded text-xs font-semibold bg-emerald-600 text-white transition">Vegetation (NDVI)</button>
+            <button id="map-layer-heat" class="px-2.5 py-1 rounded text-xs font-semibold text-slate-400 hover:text-white transition">Surface Heat</button>
+            <button id="map-layer-aqi" class="px-2.5 py-1 rounded text-xs font-semibold text-slate-400 hover:text-white transition">Air Quality</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Leaflet Map Container -->
+      <div id="mumbai-map" class="w-full h-96 rounded-xl border border-slate-800 overflow-hidden relative z-0"></div>
+
+      <div class="mt-3 flex items-center justify-between text-xs text-slate-400 flex-wrap gap-2">
+        <div class="flex items-center gap-4">
+          <span class="flex items-center gap-1.5"><span class="h-3 w-3 rounded-full bg-emerald-500"></span> High Greenery / Low Heat</span>
+          <span class="flex items-center gap-1.5"><span class="h-3 w-3 rounded-full bg-amber-500"></span> Moderate</span>
+          <span class="flex items-center gap-1.5"><span class="h-3 w-3 rounded-full bg-rose-500"></span> Extreme Built-Up Heat</span>
+        </div>
+        <span class="font-mono text-[10px] text-slate-400">WGS84 Coordinates | Leaflet Engine</span>
+      </div>
+    </section>
+
+    <!-- SECTION 7: CROSS-AREA COMPARISON ENGINE -->
+    <section id="comparison-section" class="glass-card rounded-2xl p-6 border border-slate-800">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3 mb-5">
+        <div class="flex items-center gap-2">
+          <i data-lucide="git-compare" class="h-5 w-5 text-teal-400"></i>
+          <h3 class="text-base font-bold text-white tracking-tight">Cross-Area Environmental Comparison Engine</h3>
+        </div>
+        <span class="text-xs text-slate-400">Comparative Spatial Variance</span>
+      </div>
+
+      <!-- Selectors Row -->
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-center mb-6">
+        <div class="md:col-span-5">
+          <label class="block text-xs font-semibold text-slate-400 mb-1">Location A</label>
+          <select id="compare-loc-a" class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-lg text-sm text-white font-medium focus:ring-2 focus:ring-brand-500">
+            <!-- Injected -->
+          </select>
+        </div>
+
+        <div class="md:col-span-2 text-center flex items-center justify-center">
+          <button id="swap-compare-btn" title="Swap Locations" class="p-2.5 rounded-full bg-slate-800 hover:bg-slate-700 text-teal-300 border border-slate-700 transition">
+            <i data-lucide="arrow-left-right" class="h-4 w-4"></i>
+          </button>
+        </div>
+
+        <div class="md:col-span-5">
+          <label class="block text-xs font-semibold text-slate-400 mb-1">Location B</label>
+          <select id="compare-loc-b" class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-lg text-sm text-white font-medium focus:ring-2 focus:ring-brand-500">
+            <!-- Injected -->
+          </select>
+        </div>
+      </div>
+
+      <!-- Comparison Metrics Grid -->
+      <div id="comparison-results" class="space-y-4">
+        <!-- Differential Table -->
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs border-collapse">
+            <thead>
+              <tr class="border-b border-slate-800 text-slate-400">
+                <th class="py-2.5 px-3 font-semibold">Metric</th>
+                <th id="comp-th-a" class="py-2.5 px-3 font-semibold text-white">Location A</th>
+                <th id="comp-th-b" class="py-2.5 px-3 font-semibold text-white">Location B</th>
+                <th class="py-2.5 px-3 font-semibold text-teal-400">Differential (A - B)</th>
+              </tr>
+            </thead>
+            <tbody id="comparison-table-body" class="divide-y divide-slate-800/60 font-mono">
+              <!-- Injected via JavaScript -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Comparative Narrative -->
+        <div class="p-4 rounded-xl bg-slate-900 border border-slate-800">
+          <span class="text-xs font-semibold text-teal-400 block mb-1">Scientifically Defensible Interpretation:</span>
+          <p id="comp-interpretation" class="text-xs text-slate-300 leading-relaxed font-sans">
+            Select two distinct Mumbai locations to calculate spatial environmental differentials.
+          </p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- FOOTER & PROVENANCE TRANSPARENCY -->
+  <footer class="mt-12 border-t border-slate-800/80 bg-slate-950 py-8 px-4 lg:px-8 text-xs text-slate-400">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+      <div>
+        <div class="flex items-center gap-2 text-white font-bold text-sm mb-1">
+          <span>EcoPulse Mumbai</span>
+          <span class="text-slate-500 font-normal">| ESE Engineering Project</span>
+        </div>
+        <p class="text-slate-400 max-w-lg leading-relaxed">
+          High-precision software environmental intelligence platform built strictly with open data:
+          Copernicus Sentinel-2, Landsat-8/9 TIRS, Open-Meteo CAMS, and CPCB NAQI standard.
+        </p>
+      </div>
+
+      <div class="flex flex-col sm:flex-row gap-4 font-mono text-[11px]">
+        <div class="space-y-1">
+          <div class="text-slate-300 font-semibold mb-1">Provenance Badges</div>
+          <div><span class="text-emerald-400">DIRECT_OBSERVATION</span> : Live Station/Sensor</div>
+          <div><span class="text-blue-400">MODELLED_ANALYSIS</span> : Atmospheric Assimilation</div>
+        </div>
+        <div class="space-y-1">
+          <div class="text-slate-300 font-semibold mb-1">&nbsp;</div>
+          <div><span class="text-teal-400">SATELLITE_BASELINE</span> : Sentinel & Landsat</div>
+          <div><span class="text-purple-400">FORECAST</span> : 72-Hour Numerical Model</div>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- JAVASCRIPT ENGINE & API CLIENT -->
+  <script>
+    // App State
+    let allLocations = [];
+    let currentLocationId = "borivali";
+    let activeMapLayer = "ndvi";
+    let activeChartTab = "temp";
+    let forecastChartInstance = null;
+    let mapInstance = null;
+    let mapMarkers = [];
+
+    // Helper: format CPCB NAQI Color
+    function getAqiColorClass(category) {
+      if (!category) return "bg-slate-800 text-slate-300";
+      const cat = category.toLowerCase();
+      if (cat.includes("good")) return "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30";
+      if (cat.includes("satisfactory")) return "bg-lime-500/20 text-lime-400 border border-lime-500/30";
+      if (cat.includes("moderate")) return "bg-amber-500/20 text-amber-400 border border-amber-500/30";
+      if (cat.includes("poor") && !cat.includes("very")) return "bg-orange-500/20 text-orange-400 border border-orange-500/30";
+      if (cat.includes("very poor")) return "bg-rose-500/20 text-rose-400 border border-rose-500/30";
+      return "bg-red-600/20 text-red-400 border border-red-500/30";
+    }
+
+    // Helper: format Risk Color
+    function getRiskColorClass(level) {
+      if (level === "LOW") return "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30";
+      if (level === "MODERATE") return "bg-amber-500/20 text-amber-400 border border-amber-500/30";
+      if (level === "HIGH") return "bg-orange-500/20 text-orange-400 border border-orange-500/30";
+      return "bg-red-600/20 text-red-400 border border-red-500/30";
+    }
+
+    // 1. Initialize Locations & Dropdowns
+    async function initLocations() {
+      try {
+        const res = await fetch("/api/locations");
+        if (!res.ok) throw new Error("Failed to fetch locations");
+        allLocations = await res.json();
+
+        const locSelect = document.getElementById("location-select");
+        const compA = document.getElementById("compare-loc-a");
+        const compB = document.getElementById("compare-loc-b");
+
+        locSelect.innerHTML = "";
+        compA.innerHTML = "";
+        compB.innerHTML = "";
+
+        allLocations.forEach((loc) => {
+          const opt1 = document.createElement("option");
+          opt1.value = loc.id;
+          opt1.textContent = `${loc.name} (${loc.zone} - Ward ${loc.ward})`;
+          locSelect.appendChild(opt1);
+
+          const optA = document.createElement("option");
+          optA.value = loc.id;
+          optA.textContent = `${loc.name} (Ward ${loc.ward})`;
+          compA.appendChild(optA);
+
+          const optB = document.createElement("option");
+          optB.value = loc.id;
+          optB.textContent = `${loc.name} (Ward ${loc.ward})`;
+          compB.appendChild(optB);
+        });
+
+        // Set defaults
+        locSelect.value = currentLocationId;
+        compA.value = "borivali";
+        compB.value = "andheri";
+
+        locSelect.addEventListener("change", (e) => {
+          currentLocationId = e.target.value;
+          loadDashboard(currentLocationId);
+        });
+
+        compA.addEventListener("change", runComparison);
+        compB.addEventListener("change", runComparison);
+
+        document.getElementById("swap-compare-btn").addEventListener("click", () => {
+          const temp = compA.value;
+          compA.value = compB.value;
+          compB.value = temp;
+          runComparison();
+        });
+
+        document.getElementById("refresh-btn").addEventListener("click", () => {
+          loadDashboard(currentLocationId, true);
+        });
+
+        initMap();
+        loadDashboard(currentLocationId);
+        runComparison();
+      } catch (err) {
+        console.error("Initialization error:", err);
+      }
+    }
+
+    // 2. Load Dashboard for a Location
+    async function loadDashboard(locationId, forceRefresh = false) {
+      const refreshIcon = document.getElementById("refresh-icon");
+      if (refreshIcon) refreshIcon.classList.add("animate-spin");
+
+      try {
+        const query = forceRefresh ? "?force_refresh=true" : "";
+        const res = await fetch(`/api/environment/${locationId}${query}`);
+        if (!res.ok) throw new Error(`Environment API error: ${res.status}`);
+        const data = await res.json();
+
+        renderLocationBanner(data.location);
+        renderOverviewCards(data);
+        renderRiskEngine(data.risk);
+        renderGreeneryHeat(data.greenery, data.heat);
+        renderAlerts(data.risk ? data.risk.alerts : []);
+        renderPollutantsGrid(data.air, data.weather);
+        renderForecast(data.forecast);
+
+        document.getElementById("last-updated-text").textContent = new Date().toLocaleTimeString();
+
+        // Update map marker selection
+        highlightMapLocation(locationId);
+      } catch (err) {
+        console.error("Dashboard load failed:", err);
+      } finally {
+        if (refreshIcon) refreshIcon.classList.remove("animate-spin");
+      }
+    }
+
+    // Render Location Header Banner
+    function renderLocationBanner(loc) {
+      document.getElementById("active-location-name").textContent = loc.name;
+      document.getElementById("active-ward-badge").textContent = `Ward ${loc.ward || 'MMR'}`;
+      document.getElementById("active-zone-badge").textContent = loc.zone;
+      document.getElementById("active-station-text").textContent = `CAAQM Station: ${loc.nearest_station || 'Regional Grid Cell'}`;
+      document.getElementById("active-coords").textContent = `${loc.latitude.toFixed(4)}° N, ${loc.longitude.toFixed(4)}° E`;
+    }
+
+    // Render Overview Cards
+    function renderOverviewCards(data) {
+      const air = data.air || {};
+      const weather = data.weather || {};
+      const heat = data.heat || {};
+
+      // AQI
+      const aqiEl = document.getElementById("card-aqi-value");
+      const aqiCatEl = document.getElementById("card-aqi-category");
+      if (air.aqi !== null && air.aqi !== undefined) {
+        aqiEl.textContent = air.aqi;
+        aqiCatEl.textContent = air.aqi_category || "Moderate";
+        aqiCatEl.className = `inline-block mt-1 px-2 py-0.5 rounded text-xs font-bold ${getAqiColorClass(air.aqi_category)}`;
+      } else {
+        aqiEl.textContent = "N/A";
+        aqiCatEl.textContent = "UNAVAILABLE";
+        aqiCatEl.className = "inline-block mt-1 px-2 py-0.5 rounded text-xs font-bold bg-slate-800 text-slate-400";
+      }
+      document.getElementById("card-dominant-pollutant").textContent = air.dominant_pollutant || "PM2.5";
+      document.getElementById("aqi-prov-badge").textContent = air.provenance ? air.provenance.slice(0, 8) : "MODEL";
+
+      // PM2.5
+      const pm25Val = air.pm25 && air.pm25.value !== null ? air.pm25.value : "--";
+      document.getElementById("card-pm25-value").textContent = pm25Val;
+      document.getElementById("card-pm25-sub-val").textContent = air.pm25 && air.pm25.naqi_sub_index ? air.pm25.naqi_sub_index : "--";
+
+      // Temperature
+      document.getElementById("card-temp-value").textContent = weather.temperature_c !== null ? `${weather.temperature_c.toFixed(1)}°C` : "--";
+      document.getElementById("card-apparent-temp").textContent = weather.apparent_temperature_c !== null ? `${weather.apparent_temperature_c.toFixed(1)}°C` : "--";
+      document.getElementById("card-humidity-value").textContent = weather.relative_humidity_pct !== null ? `${weather.relative_humidity_pct}%` : "--";
+
+      // Wind
+      document.getElementById("card-wind-value").innerHTML = weather.wind_speed_kmh !== null ? `${weather.wind_speed_kmh.toFixed(1)} <span class="text-sm font-normal text-slate-400">km/h</span>` : "--";
+      document.getElementById("card-wind-dir").textContent = weather.wind_cardinal || "--";
+      const ventStatus = (weather.wind_speed_kmh >= 14) ? "Favorable" : (weather.wind_speed_kmh < 8 ? "Stagnant" : "Moderate");
+      document.getElementById("card-ventilation-status").textContent = ventStatus;
+
+      // Surface Heat
+      document.getElementById("card-heat-index-value").textContent = heat.surface_heat_index ? `${heat.surface_heat_index.toFixed(1)}/10` : "--";
+      const heatClassEl = document.getElementById("card-heat-class");
+      heatClassEl.textContent = heat.heat_classification || "--";
+      heatClassEl.className = `inline-block mt-1 px-2 py-0.5 rounded text-xs font-bold ${heat.heat_classification === 'LOW' ? 'bg-emerald-500/20 text-emerald-400' : (heat.heat_classification === 'EXTREME' ? 'bg-rose-500/20 text-rose-400' : 'bg-amber-500/20 text-amber-400')}`;
+      document.getElementById("card-builtup-value").textContent = heat.built_up_ratio_pct ? `${heat.built_up_ratio_pct.toFixed(1)}%` : "--";
+    }
+
+    // Render Risk Engine
+    function renderRiskEngine(risk) {
+      if (!risk) return;
+      const score = risk.risk_score || 50;
+      document.getElementById("risk-score-val").textContent = score;
+
+      const badge = document.getElementById("risk-level-badge");
+      badge.textContent = `${risk.risk_level || 'MODERATE'} RISK`;
+      badge.className = `px-3 py-1 rounded-full text-xs font-extrabold uppercase tracking-wide ${getRiskColorClass(risk.risk_level)}`;
+
+      // Update radial circle
+      const circle = document.getElementById("risk-score-circle");
+      const circumference = 2 * Math.PI * 42; // ~263.89
+      const offset = circumference - (score / 100) * circumference;
+      circle.style.strokeDasharray = circumference;
+      circle.style.strokeDashoffset = offset;
+
+      if (risk.risk_level === "LOW") circle.setAttribute("class", "text-emerald-500 transition-all duration-1000");
+      else if (risk.risk_level === "MODERATE") circle.setAttribute("class", "text-amber-400 transition-all duration-1000");
+      else if (risk.risk_level === "HIGH") circle.setAttribute("class", "text-orange-500 transition-all duration-1000");
+      else circle.setAttribute("class", "text-rose-500 transition-all duration-1000");
+
+      document.getElementById("risk-primary-stressor").textContent = risk.primary_stressor || "Atmospheric Particulate Loading";
+
+      // Contributing Factors
+      const factors = risk.contributing_factors || {};
+      const airScore = factors.air_quality_stress_score || 50;
+      const thermalScore = factors.thermal_stress_score || 40;
+      const surfaceScore = factors.surface_heat_stress_score || 60;
+      const dispScore = factors.dispersion_stress_score || 35;
+
+      document.getElementById("factor-air-score").textContent = `${airScore.toFixed(0)}/100`;
+      document.getElementById("factor-air-bar").style.width = `${airScore}%`;
+
+      document.getElementById("factor-thermal-score").textContent = `${thermalScore.toFixed(0)}/100`;
+      document.getElementById("factor-thermal-bar").style.width = `${thermalScore}%`;
+
+      document.getElementById("factor-surface-score").textContent = `${surfaceScore.toFixed(0)}/100`;
+      document.getElementById("factor-surface-bar").style.width = `${surfaceScore}%`;
+
+      document.getElementById("factor-dispersion-score").textContent = `${dispScore.toFixed(0)}/100`;
+      document.getElementById("factor-dispersion-bar").style.width = `${dispScore}%`;
+
+      document.getElementById("factor-veg-status").textContent = factors.vegetative_buffer_status || "MODERATE";
+
+      // Explanation
+      document.getElementById("risk-explanation-text").textContent = risk.explanation || "Risk evaluated.";
+    }
+
+    // Render Greenery & Heat
+    function renderGreeneryHeat(greenery, heat) {
+      if (!greenery || !heat) return;
+
+      document.getElementById("greenery-ndvi-val").textContent = greenery.ndvi_mean.toFixed(2);
+      document.getElementById("greenery-class-badge").textContent = greenery.greenery_classification;
+      document.getElementById("greenery-canopy-val").textContent = `${greenery.tree_canopy_pct.toFixed(1)}%`;
+      document.getElementById("greenery-trend-val").textContent = `${greenery.vegetation_change_5yr_pct >= 0 ? '+' : ''}${greenery.vegetation_change_5yr_pct.toFixed(1)}%`;
+      document.getElementById("greenery-bar").style.width = `${Math.min(100, Math.max(10, greenery.ndvi_mean * 150))}%`;
+
+      document.getElementById("heat-index-val").textContent = heat.surface_heat_index.toFixed(1);
+      document.getElementById("heat-class-badge").textContent = heat.heat_classification;
+      document.getElementById("heat-comfort-val").textContent = heat.thermal_comfort_category || "Moderate";
+      document.getElementById("heat-bar").style.width = `${(heat.surface_heat_index / 10) * 100}%`;
+
+      if (greenery.interpretation) {
+        document.getElementById("greenery-heat-note").textContent = `${greenery.interpretation} ${heat.interpretation || ''}`;
+      }
+    }
+
+    // Render Alerts
+    function renderAlerts(alerts) {
+      const container = document.getElementById("alerts-container");
+      container.innerHTML = "";
+
+      if (!alerts || alerts.length === 0) {
+        const noAlert = document.createElement("div");
+        noAlert.className = "p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs flex items-center gap-2";
+        noAlert.innerHTML = `<i data-lucide="check-circle-2" class="h-4 w-4"></i> <span><strong>Nominal Condition:</strong> No active environmental warnings or critical anomalies detected.</span>`;
+        container.appendChild(noAlert);
+        lucide.createIcons();
+        return;
+      }
+
+      alerts.forEach((alert) => {
+        const alertEl = document.createElement("div");
+        const isCritical = alert.severity === "CRITICAL";
+        alertEl.className = `p-3 rounded-xl ${isCritical ? 'bg-rose-500/15 border-rose-500/30 text-rose-300' : 'bg-amber-500/15 border-amber-500/30 text-amber-300'} border text-xs flex items-start gap-2.5`;
+        alertEl.innerHTML = `
+          <i data-lucide="${isCritical ? 'alert-triangle' : 'alert-circle'}" class="h-4 w-4 mt-0.5 shrink-0 ${isCritical ? 'text-rose-400' : 'text-amber-400'}"></i>
+          <div class="flex-1">
+            <div class="font-bold flex items-center justify-between">
+              <span>${alert.title}</span>
+              <span class="text-[10px] font-mono uppercase bg-slate-900/60 px-1.5 py-0.5 rounded border border-slate-700">${alert.severity}</span>
+            </div>
+            <p class="mt-0.5 text-slate-300">${alert.message}</p>
+            <div class="text-[10px] text-slate-400 mt-1">Reason: ${alert.reason} | Affected: ${alert.affected_metric}</div>
+          </div>
+        `;
+        container.appendChild(alertEl);
+      });
+      lucide.createIcons();
+    }
+
+    // Render Pollutants Grid
+    function renderPollutantsGrid(air, weather) {
+      const grid = document.getElementById("pollutants-grid");
+      grid.innerHTML = "";
+
+      const pollutants = [
+        { key: "pm25", name: "PM2.5", obj: air ? air.pm25 : null, safe: "60 µg/m³" },
+        { key: "pm10", name: "PM10", obj: air ? air.pm10 : null, safe: "100 µg/m³" },
+        { key: "no2", name: "NO2", obj: air ? air.no2 : null, safe: "80 µg/m³" },
+        { key: "so2", name: "SO2", obj: air ? air.so2 : null, safe: "80 µg/m³" },
+        { key: "co", name: "CO", obj: air ? air.co : null, safe: "4 mg/m³" },
+        { key: "o3", name: "Ozone (O3)", obj: air ? air.o3 : null, safe: "100 µg/m³" }
+      ];
+
+      pollutants.forEach((p) => {
+        const card = document.createElement("div");
+        card.className = "p-3 rounded-xl bg-slate-950/60 border border-slate-800 flex flex-col justify-between";
+
+        if (p.obj && p.obj.is_available && p.obj.value !== null) {
+          card.innerHTML = `
+            <div class="flex items-center justify-between text-xs text-slate-400">
+              <span class="font-bold text-slate-300">${p.name}</span>
+              <span class="text-[10px] font-mono px-1 py-0.5 rounded bg-slate-900 text-slate-400">${p.obj.unit}</span>
+            </div>
+            <div class="my-2">
+              <span class="text-xl font-black text-white">${p.obj.value}</span>
+              <div class="text-[10px] text-slate-400 mt-0.5">Sub-Index: <strong class="text-slate-200">${p.obj.naqi_sub_index || '--'}</strong></div>
+            </div>
+            <div class="text-[10px] text-slate-500 truncate">CPCB: ${p.safe}</div>
+          `;
+        } else {
+          card.innerHTML = `
+            <div class="flex items-center justify-between text-xs text-slate-400">
+              <span class="font-bold text-slate-400">${p.name}</span>
+              <span class="text-[10px] font-mono text-slate-600">--</span>
+            </div>
+            <div class="my-2 py-1">
+              <span class="text-xs font-bold text-slate-500 uppercase tracking-wider bg-slate-900 px-2 py-1 rounded border border-slate-800">UNAVAILABLE</span>
+            </div>
+            <div class="text-[10px] text-slate-600">Channel unmonitored</div>
+          `;
+        }
+        grid.appendChild(card);
+      });
+    }
+
+    // Render 72-Hour Forecast & Chart
+    function renderForecast(forecast) {
+      if (!forecast) return;
+      document.getElementById("forecast-trend-summary").textContent = forecast.trend_summary || "Forecast generated.";
+
+      // Daily Cards
+      const dailyContainer = document.getElementById("forecast-daily-cards");
+      dailyContainer.innerHTML = "";
+
+      (forecast.daily || []).forEach((day) => {
+        const dCard = document.createElement("div");
+        dCard.className = "p-3.5 rounded-xl bg-slate-900/80 border border-slate-800";
+        dCard.innerHTML = `
+          <div class="flex items-center justify-between text-xs mb-1.5">
+            <span class="font-bold text-white">${day.date}</span>
+            <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-slate-800 text-brand-300 border border-slate-700">${day.dominant_condition || 'Normal'}</span>
+          </div>
+          <div class="flex items-center justify-between text-xs text-slate-300 my-1">
+            <span>Temp: <strong>${day.temp_min_c ? day.temp_min_c.toFixed(1) : '--'}°C - ${day.temp_max_c ? day.temp_max_c.toFixed(1) : '--'}°C</strong></span>
+            <span>Rain: <strong>${day.precipitation_sum_mm ? day.precipitation_sum_mm.toFixed(1) : '0'} mm</strong></span>
+          </div>
+          <div class="flex items-center justify-between text-[11px] text-slate-400 mt-2 pt-2 border-t border-slate-800/80">
+            <span>Avg PM2.5: <strong class="text-slate-200">${day.avg_pm25 || '--'} µg/m³</strong></span>
+            <span class="text-amber-400 font-semibold">${day.predicted_aqi_category || 'Moderate'}</span>
+          </div>
+        `;
+        dailyContainer.appendChild(dCard);
+      });
+
+      // Chart.js Timeline
+      renderForecastChart(forecast.hourly || []);
+    }
+
+    function renderForecastChart(hourly) {
+      const ctx = document.getElementById("forecastChart").getContext("2d");
+      const labels = [];
+      const tempData = [];
+      const pm25Data = [];
+      const windData = [];
+
+      hourly.forEach((pt, i) => {
+        // Sample every 3 hours for clean visualization
+        if (i % 3 === 0) {
+          const dt = new Date(pt.time);
+          labels.push(dt.toLocaleDateString("en-US", { weekday: "short", hour: "numeric" }));
+          tempData.push(pt.temperature_c);
+          pm25Data.push(pt.pm25);
+          windData.push(pt.wind_speed_kmh);
+        }
+      });
+
+      if (forecastChartInstance) {
+        forecastChartInstance.destroy();
+      }
+
+      let activeDataset = {
+        label: "Temperature (°C)",
+        data: tempData,
+        borderColor: "#10b981",
+        backgroundColor: "rgba(16, 185, 129, 0.1)",
+        tension: 0.35,
+        fill: true
+      };
+
+      if (activeChartTab === "pm25") {
+        activeDataset = {
+          label: "PM2.5 Concentration (µg/m³)",
+          data: pm25Data,
+          borderColor: "#f59e0b",
+          backgroundColor: "rgba(245, 158, 11, 0.1)",
+          tension: 0.35,
+          fill: true
+        };
+      } else if (activeChartTab === "wind") {
+        activeDataset = {
+          label: "Surface Wind Speed (km/h)",
+          data: windData,
+          borderColor: "#06b6d4",
+          backgroundColor: "rgba(6, 182, 212, 0.1)",
+          tension: 0.35,
+          fill: true
+        };
+      }
+
+      forecastChartInstance = new Chart(ctx, {
+        type: "line",
+        data: {
+          labels: labels,
+          datasets: [activeDataset]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: "#111827",
+              titleColor: "#f3f4f6",
+              bodyColor: "#10b981",
+              borderColor: "rgba(255, 255, 255, 0.1)",
+              borderWidth: 1
+            }
+          },
+          scales: {
+            x: {
+              grid: { color: "rgba(255, 255, 255, 0.04)" },
+              ticks: { color: "#94a3b8", font: { size: 10 } }
+            },
+            y: {
+              grid: { color: "rgba(255, 255, 255, 0.04)" },
+              ticks: { color: "#94a3b8", font: { size: 10 } }
+            }
+          }
+        }
+      });
+
+      // Bind tabs
+      document.getElementById("chart-tab-temp").onclick = () => {
+        activeChartTab = "temp";
+        updateTabStyles("chart-tab-temp");
+        renderForecastChart(hourly);
+      };
+      document.getElementById("chart-tab-pm25").onclick = () => {
+        activeChartTab = "pm25";
+        updateTabStyles("chart-tab-pm25");
+        renderForecastChart(hourly);
+      };
+      document.getElementById("chart-tab-wind").onclick = () => {
+        activeChartTab = "wind";
+        updateTabStyles("chart-tab-wind");
+        renderForecastChart(hourly);
+      };
+    }
+
+    function updateTabStyles(activeId) {
+      ["chart-tab-temp", "chart-tab-pm25", "chart-tab-wind"].forEach((id) => {
+        const btn = document.getElementById(id);
+        if (id === activeId) {
+          btn.className = "px-2.5 py-1 text-xs font-medium rounded-md bg-brand-600 text-white transition";
+        } else {
+          btn.className = "px-2.5 py-1 text-xs font-medium rounded-md text-slate-400 hover:text-white transition";
+        }
+      });
+    }
+
+    // 3. Leaflet Mumbai Map Initialization
+    async function initMap() {
+      try {
+        const mapContainer = document.getElementById("mumbai-map");
+        if (!mapContainer) return;
+
+        // Mumbai center coordinates
+        mapInstance = L.map("mumbai-map").setView([19.0760, 72.8777], 11);
+
+        // CartoDB Dark Matter tile layer
+        L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+          attribution: '&copy; <a href="https://carto.com/">CARTO</a> &copy; OpenStreetMap',
+          subdomains: "abcd",
+          maxZoom: 18
+        }).addTo(mapInstance);
+
+        const res = await fetch("/api/greenery-heat/map");
+        if (!res.ok) throw new Error("Failed to fetch map data");
+        const mapData = await res.json();
+
+        renderMapMarkers(mapData.locations);
+
+        // Map layer buttons
+        document.getElementById("map-layer-ndvi").onclick = () => {
+          activeMapLayer = "ndvi";
+          updateMapTabStyles("map-layer-ndvi");
+          renderMapMarkers(mapData.locations);
+        };
+        document.getElementById("map-layer-heat").onclick = () => {
+          activeMapLayer = "heat";
+          updateMapTabStyles("map-layer-heat");
+          renderMapMarkers(mapData.locations);
+        };
+        document.getElementById("map-layer-aqi").onclick = () => {
+          activeMapLayer = "aqi";
+          updateMapTabStyles("map-layer-aqi");
+          renderMapMarkers(mapData.locations);
+        };
+      } catch (err) {
+        console.error("Map initialization failed:", err);
+      }
+    }
+
+    function updateMapTabStyles(activeId) {
+      ["map-layer-ndvi", "map-layer-heat", "map-layer-aqi"].forEach((id) => {
+        const btn = document.getElementById(id);
+        if (id === activeId) {
+          btn.className = "px-2.5 py-1 rounded text-xs font-semibold bg-brand-600 text-white transition";
+        } else {
+          btn.className = "px-2.5 py-1 rounded text-xs font-semibold text-slate-400 hover:text-white transition";
+        }
+      });
+    }
+
+    function renderMapMarkers(locations) {
+      if (!mapInstance) return;
+
+      // Clear existing markers
+      mapMarkers.forEach(m => mapInstance.removeLayer(m));
+      mapMarkers = [];
+
+      locations.forEach(loc => {
+        let color = "#10b981";
+        let radius = 9;
+
+        if (activeMapLayer === "ndvi") {
+          color = loc.ndvi_mean >= 0.40 ? "#10b981" : (loc.ndvi_mean >= 0.25 ? "#38bdf8" : "#f59e0b");
+        } else if (activeMapLayer === "heat") {
+          color = loc.surface_heat_index >= 7.5 ? "#f43f5e" : (loc.surface_heat_index >= 5.5 ? "#f97316" : "#10b981");
+        } else {
+          color = (loc.aqi && loc.aqi > 200) ? "#f43f5e" : ((loc.aqi && loc.aqi > 100) ? "#f59e0b" : "#10b981");
+        }
+
+        const circleMarker = L.circleMarker([loc.latitude, loc.longitude], {
+          radius: radius,
+          fillColor: color,
+          color: "#ffffff",
+          weight: 2,
+          opacity: 0.9,
+          fillOpacity: 0.8
+        }).addTo(mapInstance);
+
+        circleMarker.bindPopup(`
+          <div class="p-1">
+            <h4 class="font-bold text-white text-sm">${loc.name}</h4>
+            <div class="text-[11px] text-slate-400 mb-2">Ward ${loc.ward} • ${loc.zone}</div>
+            <div class="text-xs space-y-1">
+              <div>NDVI: <strong class="text-emerald-400">${loc.ndvi_mean.toFixed(2)}</strong> (${loc.greenery_classification})</div>
+              <div>Heat Index: <strong class="text-orange-400">${loc.surface_heat_index.toFixed(1)}/10</strong></div>
+              <div>Tree Canopy: <strong>${loc.tree_canopy_pct.toFixed(1)}%</strong></div>
+            </div>
+            <button onclick="selectLocationFromMap('${loc.id}')" class="mt-2 w-full px-2 py-1 bg-brand-600 hover:bg-brand-500 text-white rounded text-[11px] font-semibold transition">
+              Load Area Dashboard
+            </button>
+          </div>
+        `);
+
+        circleMarker.locId = loc.id;
+        mapMarkers.push(circleMarker);
+      });
+    }
+
+    function highlightMapLocation(locId) {
+      mapMarkers.forEach(m => {
+        if (m.locId === locId) {
+          m.setStyle({ weight: 4, color: "#38bdf8", radius: 12 });
+        } else {
+          m.setStyle({ weight: 2, color: "#ffffff", radius: 9 });
+        }
+      });
+    }
+
+    window.selectLocationFromMap = function(locId) {
+      currentLocationId = locId;
+      document.getElementById("location-select").value = locId;
+      loadDashboard(locId);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    };
+
+    // 4. Cross-Area Comparison
+    async function runComparison() {
+      const locA = document.getElementById("compare-loc-a").value;
+      const locB = document.getElementById("compare-loc-b").value;
+
+      if (!locA || !locB || locA === locB) {
+        document.getElementById("comp-interpretation").textContent = "Please select two distinct Mumbai locations to compare.";
+        return;
+      }
+
+      try {
+        const res = await fetch(`/api/environment/compare?location_a=${locA}&location_b=${locB}`);
+        if (!res.ok) throw new Error("Comparison failed");
+        const comp = await res.json();
+
+        document.getElementById("comp-th-a").textContent = comp.location_a.location_name;
+        document.getElementById("comp-th-b").textContent = comp.location_b.location_name;
+
+        const tbody = document.getElementById("comparison-table-body");
+        tbody.innerHTML = "";
+
+        const rows = [
+          { label: "Vegetative Vigor (NDVI)", valA: comp.location_a.ndvi_mean.toFixed(2), valB: comp.location_b.ndvi_mean.toFixed(2), delta: `${comp.differentials.ndvi_delta >= 0 ? '+' : ''}${comp.differentials.ndvi_delta.toFixed(2)}` },
+          { label: "Tree Canopy Cover", valA: `${comp.location_a.tree_canopy_pct.toFixed(1)}%`, valB: `${comp.location_b.tree_canopy_pct.toFixed(1)}%`, delta: `${comp.differentials.canopy_pct_delta >= 0 ? '+' : ''}${comp.differentials.canopy_pct_delta.toFixed(1)}%` },
+          { label: "Built-Up Impervious Ratio", valA: `${comp.location_a.built_up_ratio_pct.toFixed(1)}%`, valB: `${comp.location_b.built_up_ratio_pct.toFixed(1)}%`, delta: `${comp.differentials.built_up_pct_delta >= 0 ? '+' : ''}${comp.differentials.built_up_pct_delta.toFixed(1)}%` },
+          { label: "Surface Heat Index", valA: `${comp.location_a.surface_heat_index.toFixed(1)}/10`, valB: `${comp.location_b.surface_heat_index.toFixed(1)}/10`, delta: `${comp.differentials.surface_heat_index_delta >= 0 ? '+' : ''}${comp.differentials.surface_heat_index_delta.toFixed(1)}` },
+          { label: "Greenery Classification", valA: comp.location_a.greenery_classification, valB: comp.location_b.greenery_classification, delta: "-" },
+          { label: "Surface Thermal Class", valA: comp.location_a.heat_classification, valB: comp.location_b.heat_classification, delta: "-" }
+        ];
+
+        rows.forEach(r => {
+          const tr = document.createElement("tr");
+          tr.className = "hover:bg-slate-900/40 transition";
+          tr.innerHTML = `
+            <td class="py-2.5 px-3 font-sans text-slate-300 font-medium">${r.label}</td>
+            <td class="py-2.5 px-3 text-slate-100">${r.valA}</td>
+            <td class="py-2.5 px-3 text-slate-100">${r.valB}</td>
+            <td class="py-2.5 px-3 font-bold text-teal-400">${r.delta}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+
+        document.getElementById("comp-interpretation").textContent = comp.interpretation;
+      } catch (err) {
+        console.error("Comparison load error:", err);
+      }
+    }
+
+    // Startup on DOM Ready
+    document.addEventListener("DOMContentLoaded", () => {
+      lucide.createIcons();
+      initLocations();
+    });
+  </script>
+</body>
+</html>
