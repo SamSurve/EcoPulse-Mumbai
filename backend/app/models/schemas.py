@@ -294,3 +294,20 @@ class MumbaiMapDataResponse(BaseModel):
     satellite_source: str = "Copernicus Sentinel-2 & Landsat-8/9 Thermal Survey Baseline"
     provenance: DataProvenance = DataProvenance.SATELLITE_BASELINE
     timestamp: datetime = Field(default_factory=datetime.utcnow)
+
+
+class RiskSummaryResponse(BaseModel):
+    location_id: str
+    location_name: str
+    zone: str
+    ward: str
+    risk_score: Optional[float] = None
+    risk_level: Optional[str] = None
+    score_label: str = "EcoPulse Environmental Risk Score"
+    primary_stressor: Optional[str] = None
+    active_alerts_count: int = 0
+    active_anomalies_count: int = 0
+    explanation: str = ""
+    forecast_trend_summary: str = ""
+    timestamp: Optional[datetime] = None
+

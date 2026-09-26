@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Query, Path
 from typing import Dict, Any
 
-from app.models.schemas import RiskData, ForecastData, ErrorResponse
+from app.models.schemas import RiskData, ForecastData, ErrorResponse, RiskSummaryResponse
 from app.services.environment_service import environment_service
 from app.data.locations import is_valid_location, get_location_by_id
 
@@ -88,6 +88,7 @@ def get_environmental_forecast(
 
 @router.get(
     "/risk/{location_id}/summary",
+    response_model=RiskSummaryResponse,
     responses={
         404: {"model": ErrorResponse, "description": "Location not found in Mumbai registry"},
         422: {"model": ErrorResponse, "description": "Invalid location ID format"}
@@ -102,7 +103,7 @@ def get_risk_summary(
         description="Unique identifier for the Mumbai micro-location (e.g. 'borivali', 'andheri')"
     ),
     force_refresh: bool = Query(default=False)
-) -> Dict[str, Any]:
+) -> RiskSummaryResponse:
     """
     High-level compact summary of current risk, active alerts, and 72-hour outlook.
     """

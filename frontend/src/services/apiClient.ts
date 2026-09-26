@@ -7,6 +7,7 @@ import {
   HeatData,
   RiskData,
   ForecastData,
+  RiskSummaryResponse,
   AreaComparisonResponse,
   MumbaiMapDataResponse,
 } from "../types/api";
@@ -91,8 +92,8 @@ class EcoPulseApiClient {
     return await this.fetchJson<ForecastData>(`/forecast/${locationId}${q}`);
   }
 
-  async getRiskSummaryDirect(locationId: string): Promise<any> {
-    return await this.fetchJson<any>(`/risk/${locationId}/summary`);
+  async getRiskSummaryDirect(locationId: string): Promise<RiskSummaryResponse> {
+    return await this.fetchJson<RiskSummaryResponse>(`/risk/${locationId}/summary`);
   }
 
   async compareLocationsDirect(locationA: string, locationB: string): Promise<AreaComparisonResponse> {

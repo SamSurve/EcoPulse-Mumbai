@@ -288,3 +288,20 @@ export interface MumbaiMapDataResponse {
   provenance: DataProvenance;
   timestamp: string;
 }
+
+export interface RiskSummaryResponse {
+  location_id: string;
+  location_name: string;
+  zone: string;
+  ward: string;
+  risk_score: number | null;
+  risk_level: string | null;
+  score_label: string;
+  primary_stressor: string | null;
+  active_alerts_count: number;
+  active_anomalies_count: number;
+  explanation: string;
+  forecast_trend_summary: string;
+  timestamp: string | null;
+}
+
