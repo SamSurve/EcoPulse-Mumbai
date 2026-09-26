@@ -45,7 +45,7 @@ def run_self_verification():
     idx, cat = calculate_naqi_sub_index("pm25", 75.0)
     assert cat == "Moderate", f"Expected Moderate for PM2.5 75, got {cat}"
     idx, cat = calculate_naqi_sub_index("pm25", 150.0)
-    assert cat == "Poor", f"Expected Poor for PM2.5 150, got {cat}"
+    assert cat == "Very Poor", f"Expected Very Poor for PM2.5 150, got {cat}"
     print("[✓] CPCB NAQI Breakpoint Engine: Verified across all tiers.")
 
     # 4. Satellite Surface Indicators Check
