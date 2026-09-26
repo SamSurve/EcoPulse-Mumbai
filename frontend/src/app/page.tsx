@@ -1161,6 +1161,8 @@ export default function EcoPulseProductionDashboard() {
                                 ? "bg-orange-950 border-orange-700 text-orange-300"
                                 : riskData.risk_level === "MODERATE"
                                 ? "bg-yellow-950 border-yellow-700 text-yellow-300"
+                                : riskData.risk_level === "UNAVAILABLE"
+                                ? "bg-slate-800 border-slate-700 text-slate-400"
                                 : "bg-emerald-950 border-emerald-700 text-emerald-300"
                             }`}
                           >
@@ -1171,63 +1173,86 @@ export default function EcoPulseProductionDashboard() {
 
                       {/* Contributing Domain Stressors */}
                       {riskData.contributing_factors && (
-                        <div className="space-y-3 p-4 bg-slate-950/60 border border-slate-800/80 rounded-xl">
-                          <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider">
-                            Domain Stressor Decomposition
-                          </h4>
-                          <div className="space-y-2.5">
-                            {[
-                              {
-                                label: "Air Quality Stress",
-                                score: riskData.contributing_factors.air_quality_stress_score,
-                                color: "bg-blue-500",
-                              },
-                              {
-                                label: "Thermal Heat Stress",
-                                score: riskData.contributing_factors.thermal_stress_score,
-                                color: "bg-amber-500",
-                              },
-                              {
-                                label: "Surface Heat (UHI) Stress",
-                                score: riskData.contributing_factors.surface_heat_stress_score,
-                                color: "bg-orange-500",
-                              },
-                              {
-                                label: "Dispersion / Stagnation Stress",
-                                score: riskData.contributing_factors.dispersion_stress_score,
-                                color: "bg-purple-500",
-                              },
-                            ].map((item) => (
-                              <div key={item.label} className="space-y-1">
-                                <div className="flex justify-between text-xs">
-                                  <span className="text-slate-400">{item.label}</span>
-                                  <span className="font-mono text-white font-bold">{item.score}/100</span>
-                                </div>
-                                <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
-                                  <div
-                                    className={`${item.color} h-full rounded-full`}
-                                    style={{ width: `${Math.min(item.score, 100)}%` }}
-                                  ></div>
-                                </div>
-                              </div>
-                            ))}
+                        riskData.contributing_factors.status === "UNAVAILABLE" ? (
+                          <div className="p-4 bg-slate-950/60 border border-slate-800/80 rounded-xl space-y-2">
+                            <div className="flex items-center gap-2 text-slate-300 font-bold text-xs uppercase tracking-wider">
+                              <AlertTriangle className="w-4 h-4 text-amber-400" />
+                              Domain Stressor Decomposition
+                            </div>
+                            <div className="p-3 bg-slate-900/60 border border-slate-800 rounded-lg text-xs text-slate-400 space-y-1">
+                              <p className="font-semibold text-slate-300">
+                                {riskData.contributing_factors.reason || "Real-time atmospheric telemetry is currently unavailable."}
+                              </p>
+                              <p className="text-[11px] text-slate-500 font-mono">
+                                Status: UNAVAILABLE • Zero synthetic data imputed
+                              </p>
+                            </div>
                           </div>
+                        ) : (
+                          <div className="space-y-3 p-4 bg-slate-950/60 border border-slate-800/80 rounded-xl">
+                            <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider">
+                              Domain Stressor Decomposition
+                            </h4>
+                            <div className="space-y-2.5">
+                              {[
+                                {
+                                  label: "Air Quality Stress",
+                                  score: riskData.contributing_factors.air_quality_stress_score,
+                                  color: "bg-blue-500",
+                                },
+                                {
+                                  label: "Thermal Heat Stress",
+                                  score: riskData.contributing_factors.thermal_stress_score,
+                                  color: "bg-amber-500",
+                                },
+                                {
+                                  label: "Surface Heat (UHI) Stress",
+                                  score: riskData.contributing_factors.surface_heat_stress_score,
+                                  color: "bg-orange-500",
+                                },
+                                {
+                                  label: "Dispersion / Stagnation Stress",
+                                  score: riskData.contributing_factors.dispersion_stress_score,
+                                  color: "bg-purple-500",
+                                },
+                              ].map((item) => {
+                                const hasScore = typeof item.score === "number" && !isNaN(item.score);
+                                const safeScore = hasScore ? Math.round(item.score!) : 0;
+                                return (
+                                  <div key={item.label} className="space-y-1">
+                                    <div className="flex justify-between text-xs">
+                                      <span className="text-slate-400">{item.label}</span>
+                                      <span className="font-mono text-white font-bold">
+                                        {hasScore ? `${safeScore}/100` : <span className="text-slate-500 font-normal">DATA GAP</span>}
+                                      </span>
+                                    </div>
+                                    <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                                      <div
+                                        className={`${item.color} h-full rounded-full transition-all`}
+                                        style={{ width: `${hasScore ? Math.max(0, Math.min(safeScore, 100)) : 0}%` }}
+                                      ></div>
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
 
-                          <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-800/60 text-xs">
-                            <div>
-                              <span className="text-slate-400">Ventilation:</span>{" "}
-                              <span className="font-mono text-emerald-400">
-                                {riskData.contributing_factors.ventilation_status}
-                              </span>
-                            </div>
-                            <div>
-                              <span className="text-slate-400">Vegetative Buffer:</span>{" "}
-                              <span className="font-mono text-emerald-400">
-                                {riskData.contributing_factors.vegetative_buffer_status}
-                              </span>
+                            <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-800/60 text-xs">
+                              <div>
+                                <span className="text-slate-400">Ventilation:</span>{" "}
+                                <span className="font-mono text-emerald-400">
+                                  {riskData.contributing_factors.ventilation_status || "N/A"}
+                                </span>
+                              </div>
+                              <div>
+                                <span className="text-slate-400">Vegetative Buffer:</span>{" "}
+                                <span className="font-mono text-emerald-400">
+                                  {riskData.contributing_factors.vegetative_buffer_status || "N/A"}
+                                </span>
+                              </div>
                             </div>
                           </div>
-                        </div>
+                        )
                       )}
 
                       {/* Explanation */}
@@ -1444,52 +1469,73 @@ export default function EcoPulseProductionDashboard() {
                           <line x1="0" y1="90" x2="600" y2="90" stroke="#1e293b" strokeDasharray="3 3" />
 
                           {/* Temperature Curve */}
-                          {forecastData.hourly && forecastData.hourly.length > 0 && (
-                            <>
-                              <path
-                                d={forecastData.hourly.slice(0, 24).reduce((acc, pt, idx, arr) => {
-                                  const x = (idx / (arr.length - 1)) * 580 + 10;
-                                  const temp = pt.temperature_c ?? 28;
-                                  const y = 100 - ((temp - 20) / 20) * 80;
-                                  return idx === 0 ? `M ${x} ${y}` : `${acc} L ${x} ${y}`;
-                                }, "")}
-                                fill="none"
-                                stroke="#10b981"
-                                strokeWidth="2.5"
-                              />
+                          {(!forecastData.hourly || forecastData.hourly.length === 0) ? (
+                            <text x="300" y="65" fill="#64748b" fontSize="11" fontFamily="monospace" textAnchor="middle">
+                              Hourly trajectory data currently unavailable
+                            </text>
+                          ) : (
+                            (() => {
+                              const slice = forecastData.hourly.slice(0, 24);
+                              const count = slice.length;
+                              const getX = (i: number) => (count > 1 ? (i / (count - 1)) * 580 + 10 : 300);
+                              const getY = (t?: number | null) => {
+                                const validTemp = typeof t === "number" && !isNaN(t) ? t : 28;
+                                const calculatedY = 100 - ((validTemp - 20) / 20) * 80;
+                                return isFinite(calculatedY) ? Math.max(15, Math.min(105, calculatedY)) : 60;
+                              };
 
-                              {forecastData.hourly.slice(0, 24).map((pt, idx, arr) => {
-                                if (idx % 3 !== 0) return null;
-                                const x = (idx / (arr.length - 1)) * 580 + 10;
-                                const temp = pt.temperature_c ?? 28;
-                                const y = 100 - ((temp - 20) / 20) * 80;
-                                return (
-                                  <g key={pt.time}>
-                                    <circle cx={x} cy={y} r="3.5" fill="#10b981" />
-                                    <text
-                                      x={x}
-                                      y={y - 8}
-                                      fill="#e2e8f0"
-                                      fontSize="9"
-                                      fontFamily="monospace"
-                                      textAnchor="middle"
-                                    >
-                                      {temp.toFixed(1)}°
-                                    </text>
-                                    <text
-                                      x={x}
-                                      y={115}
-                                      fill="#64748b"
-                                      fontSize="9"
-                                      fontFamily="monospace"
-                                      textAnchor="middle"
-                                    >
-                                      {new Date(pt.time).getHours()}:00
-                                    </text>
-                                  </g>
-                                );
-                              })}
-                            </>
+                              return (
+                                <>
+                                  {count > 1 && (
+                                    <path
+                                      d={slice.reduce((acc, pt, idx) => {
+                                        const x = getX(idx);
+                                        const y = getY(pt.temperature_c);
+                                        return idx === 0 ? `M ${x.toFixed(1)} ${y.toFixed(1)}` : `${acc} L ${x.toFixed(1)} ${y.toFixed(1)}`;
+                                      }, "")}
+                                      fill="none"
+                                      stroke="#10b981"
+                                      strokeWidth="2.5"
+                                    />
+                                  )}
+
+                                  {slice.map((pt, idx) => {
+                                    if (count > 1 && idx % 3 !== 0) return null;
+                                    const x = getX(idx);
+                                    const y = getY(pt.temperature_c);
+                                    const displayTemp = typeof pt.temperature_c === "number" && !isNaN(pt.temperature_c)
+                                      ? pt.temperature_c.toFixed(1)
+                                      : "28.0";
+
+                                    return (
+                                      <g key={pt.time || idx}>
+                                        <circle cx={x} cy={y} r="3.5" fill="#10b981" />
+                                        <text
+                                          x={x}
+                                          y={y - 8}
+                                          fill="#e2e8f0"
+                                          fontSize="9"
+                                          fontFamily="monospace"
+                                          textAnchor="middle"
+                                        >
+                                          {displayTemp}°
+                                        </text>
+                                        <text
+                                          x={x}
+                                          y={115}
+                                          fill="#64748b"
+                                          fontSize="9"
+                                          fontFamily="monospace"
+                                          textAnchor="middle"
+                                        >
+                                          {pt.time ? `${new Date(pt.time).getHours()}:00` : `${idx}:00`}
+                                        </text>
+                                      </g>
+                                    );
+                                  })}
+                                </>
+                              );
+                            })()
                           )}
                         </svg>
                       </div>

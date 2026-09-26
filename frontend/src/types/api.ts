@@ -134,17 +134,20 @@ export interface AlertItem {
 }
 
 export interface ContributingFactors {
-  air_quality_stress_score: number;
-  thermal_stress_score: number;
-  surface_heat_stress_score: number;
-  dispersion_stress_score: number;
-  ventilation_status: "FAVORABLE" | "MODERATE" | "STAGNANT";
-  vegetative_buffer_status: "STRONG" | "MODERATE" | "SPARSE";
-  weights: {
-    air_quality: number;
-    thermal_stress: number;
-    surface_heat: number;
-    dispersion: number;
+  status?: "AVAILABLE" | "UNAVAILABLE" | string;
+  reason?: string;
+  air_quality_stress_score?: number | null;
+  thermal_stress_score?: number | null;
+  surface_heat_stress_score?: number | null;
+  dispersion_stress_score?: number | null;
+  ventilation_status?: "FAVORABLE" | "MODERATE" | "STAGNANT" | "UNAVAILABLE" | string;
+  vegetative_buffer_status?: "STRONG" | "MODERATE" | "SPARSE" | "UNAVAILABLE" | string;
+  active_weights?: Record<string, number>;
+  weights?: {
+    air_quality?: number;
+    thermal_stress?: number;
+    surface_heat?: number;
+    dispersion?: number;
   };
 }
 
