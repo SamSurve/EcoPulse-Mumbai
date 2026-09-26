@@ -2001,7 +2001,7 @@ export default function EcoPulseProductionDashboard() {
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-xs text-slate-400 font-mono">
-                  GET /api/environment/unified/{selectedLoc}
+                  GET /api/environment/{selectedLoc}
                 </span>
               </div>
             </div>
