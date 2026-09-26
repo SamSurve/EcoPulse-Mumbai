@@ -895,7 +895,7 @@ export default function EcoPulseProductionDashboard() {
                         <div className="text-right">
                           <span className="text-xs text-slate-400 uppercase font-semibold">Classification</span>
                           <div className="text-sm font-bold text-white px-3 py-1 bg-emerald-950 border border-emerald-700/60 rounded-lg mt-1">
-                            {greeneryData.greenery_classification}
+                            {greeneryData.greenery_classification || "UNAVAILABLE"}
                           </div>
                         </div>
                       </div>
@@ -905,12 +905,20 @@ export default function EcoPulseProductionDashboard() {
                         <div className="p-3 bg-slate-950/70 border border-slate-800/80 rounded-lg">
                           <span className="text-xs text-slate-400">Tree Canopy Cover</span>
                           <div className="text-2xl font-bold text-white font-mono mt-1">
-                            {greeneryData.tree_canopy_pct}%
+                            {typeof greeneryData.tree_canopy_pct === "number" && !isNaN(greeneryData.tree_canopy_pct)
+                              ? `${greeneryData.tree_canopy_pct}%`
+                              : "N/A"}
                           </div>
                           <div className="w-full bg-slate-800 h-1.5 rounded-full mt-2 overflow-hidden">
                             <div
                               className="bg-emerald-500 h-full rounded-full"
-                              style={{ width: `${Math.min(greeneryData.tree_canopy_pct, 100)}%` }}
+                              style={{
+                                width: `${
+                                  typeof greeneryData.tree_canopy_pct === "number" && !isNaN(greeneryData.tree_canopy_pct)
+                                    ? Math.min(Math.max(greeneryData.tree_canopy_pct, 0), 100)
+                                    : 0
+                                }%`,
+                              }}
                             ></div>
                           </div>
                         </div>
@@ -918,12 +926,20 @@ export default function EcoPulseProductionDashboard() {
                         <div className="p-3 bg-slate-950/70 border border-slate-800/80 rounded-lg">
                           <span className="text-xs text-slate-400">Built-Up Impervious Ratio</span>
                           <div className="text-2xl font-bold text-white font-mono mt-1">
-                            {greeneryData.built_up_ratio_pct}%
+                            {typeof greeneryData.built_up_ratio_pct === "number" && !isNaN(greeneryData.built_up_ratio_pct)
+                              ? `${greeneryData.built_up_ratio_pct}%`
+                              : "N/A"}
                           </div>
                           <div className="w-full bg-slate-800 h-1.5 rounded-full mt-2 overflow-hidden">
                             <div
                               className="bg-rose-500 h-full rounded-full"
-                              style={{ width: `${Math.min(greeneryData.built_up_ratio_pct, 100)}%` }}
+                              style={{
+                                width: `${
+                                  typeof greeneryData.built_up_ratio_pct === "number" && !isNaN(greeneryData.built_up_ratio_pct)
+                                    ? Math.min(Math.max(greeneryData.built_up_ratio_pct, 0), 100)
+                                    : 0
+                                }%`,
+                              }}
                             ></div>
                           </div>
                         </div>
@@ -938,19 +954,23 @@ export default function EcoPulseProductionDashboard() {
                           </div>
                         </div>
                         <div className="text-right">
-                          <span
-                            className={`text-lg font-bold font-mono flex items-center gap-1 ${
-                              greeneryData.vegetation_change_5yr_pct >= 0 ? "text-emerald-400" : "text-rose-400"
-                            }`}
-                          >
-                            {greeneryData.vegetation_change_5yr_pct >= 0 ? (
-                              <TrendingUp className="w-4 h-4" />
-                            ) : (
-                              <TrendingDown className="w-4 h-4" />
-                            )}
-                            {greeneryData.vegetation_change_5yr_pct > 0 ? "+" : ""}
-                            {greeneryData.vegetation_change_5yr_pct}%
-                          </span>
+                          {typeof greeneryData.vegetation_change_5yr_pct === "number" && !isNaN(greeneryData.vegetation_change_5yr_pct) ? (
+                            <span
+                              className={`text-lg font-bold font-mono flex items-center gap-1 ${
+                                greeneryData.vegetation_change_5yr_pct >= 0 ? "text-emerald-400" : "text-rose-400"
+                              }`}
+                            >
+                              {greeneryData.vegetation_change_5yr_pct >= 0 ? (
+                                <TrendingUp className="w-4 h-4" />
+                              ) : (
+                                <TrendingDown className="w-4 h-4" />
+                              )}
+                              {greeneryData.vegetation_change_5yr_pct > 0 ? "+" : ""}
+                              {greeneryData.vegetation_change_5yr_pct}%
+                            </span>
+                          ) : (
+                            <span className="text-sm font-bold font-mono text-slate-500">N/A</span>
+                          )}
                         </div>
                       </div>
 
@@ -1003,15 +1023,21 @@ export default function EcoPulseProductionDashboard() {
                         <div>
                           <span className="text-xs text-slate-400 uppercase font-semibold">Surface Heat Index</span>
                           <div className="text-4xl font-extrabold text-amber-400 font-mono mt-1">
-                            {heatData.surface_heat_index}{" "}
-                            <span className="text-sm font-normal text-slate-500">/ 10</span>
+                            {typeof heatData.surface_heat_index === "number" && !isNaN(heatData.surface_heat_index) ? (
+                              <>
+                                {heatData.surface_heat_index}{" "}
+                                <span className="text-sm font-normal text-slate-500">/ 10</span>
+                              </>
+                            ) : (
+                              <span className="text-slate-500 text-3xl">DATA GAP</span>
+                            )}
                           </div>
                           <span className="text-xs text-slate-400">Radiative Surface Thermal Stress</span>
                         </div>
                         <div className="text-right">
                           <span className="text-xs text-slate-400 uppercase font-semibold">Classification</span>
                           <div className="text-sm font-bold text-amber-300 px-3 py-1 bg-amber-950 border border-amber-700/60 rounded-lg mt-1">
-                            {heatData.heat_classification}
+                            {heatData.heat_classification || "UNAVAILABLE"}
                           </div>
                         </div>
                       </div>
@@ -1039,13 +1065,23 @@ export default function EcoPulseProductionDashboard() {
                         <div className="flex justify-between text-xs">
                           <span className="text-slate-400">Urban Heat Island (UHI) Relative Intensity</span>
                           <span className="font-mono text-amber-400">
-                            {heatData.surface_heat_index > 6 ? "ELEVATED UHI" : "BUFFERED"}
+                            {typeof heatData.surface_heat_index === "number" && !isNaN(heatData.surface_heat_index)
+                              ? heatData.surface_heat_index > 6
+                                ? "ELEVATED UHI"
+                                : "BUFFERED"
+                              : "N/A"}
                           </span>
                         </div>
                         <div className="w-full bg-slate-800 h-2 rounded-full overflow-hidden flex">
                           <div
                             className="bg-gradient-to-r from-emerald-500 via-amber-500 to-rose-600 h-full"
-                            style={{ width: `${Math.min(heatData.surface_heat_index * 10, 100)}%` }}
+                            style={{
+                              width: `${
+                                typeof heatData.surface_heat_index === "number" && !isNaN(heatData.surface_heat_index)
+                                  ? Math.min(Math.max(heatData.surface_heat_index * 10, 0), 100)
+                                  : 0
+                              }%`,
+                            }}
                           ></div>
                         </div>
                         <div className="flex justify-between text-[10px] text-slate-500 font-mono">
@@ -1693,8 +1729,16 @@ export default function EcoPulseProductionDashboard() {
                         </tr>
                         <tr>
                           <td className="p-3 font-bold text-white">Tree Canopy Coverage %</td>
-                          <td className="p-3">{comparisonData.location_a.tree_canopy_pct ?? "N/A"}%</td>
-                          <td className="p-3">{comparisonData.location_b.tree_canopy_pct ?? "N/A"}%</td>
+                          <td className="p-3">
+                            {comparisonData.location_a.tree_canopy_pct !== null && comparisonData.location_a.tree_canopy_pct !== undefined
+                              ? `${comparisonData.location_a.tree_canopy_pct}%`
+                              : "N/A"}
+                          </td>
+                          <td className="p-3">
+                            {comparisonData.location_b.tree_canopy_pct !== null && comparisonData.location_b.tree_canopy_pct !== undefined
+                              ? `${comparisonData.location_b.tree_canopy_pct}%`
+                              : "N/A"}
+                          </td>
                           <td className="p-3 font-bold">
                             {comparisonData.differentials.canopy_pct_delta > 0 ? "+" : ""}
                             {comparisonData.differentials.canopy_pct_delta}%
@@ -1702,8 +1746,16 @@ export default function EcoPulseProductionDashboard() {
                         </tr>
                         <tr>
                           <td className="p-3 font-bold text-white">Built-Up Impervious Ratio %</td>
-                          <td className="p-3">{comparisonData.location_a.built_up_ratio_pct ?? "N/A"}%</td>
-                          <td className="p-3">{comparisonData.location_b.built_up_ratio_pct ?? "N/A"}%</td>
+                          <td className="p-3">
+                            {comparisonData.location_a.built_up_ratio_pct !== null && comparisonData.location_a.built_up_ratio_pct !== undefined
+                              ? `${comparisonData.location_a.built_up_ratio_pct}%`
+                              : "N/A"}
+                          </td>
+                          <td className="p-3">
+                            {comparisonData.location_b.built_up_ratio_pct !== null && comparisonData.location_b.built_up_ratio_pct !== undefined
+                              ? `${comparisonData.location_b.built_up_ratio_pct}%`
+                              : "N/A"}
+                          </td>
                           <td className="p-3 font-bold">
                             {comparisonData.differentials.built_up_pct_delta > 0 ? "+" : ""}
                             {comparisonData.differentials.built_up_pct_delta}%
@@ -1711,8 +1763,16 @@ export default function EcoPulseProductionDashboard() {
                         </tr>
                         <tr>
                           <td className="p-3 font-bold text-white">Landsat-9 Surface Heat Index</td>
-                          <td className="p-3">{comparisonData.location_a.surface_heat_index ?? "N/A"}/10</td>
-                          <td className="p-3">{comparisonData.location_b.surface_heat_index ?? "N/A"}/10</td>
+                          <td className="p-3">
+                            {comparisonData.location_a.surface_heat_index !== null && comparisonData.location_a.surface_heat_index !== undefined
+                              ? `${comparisonData.location_a.surface_heat_index}/10`
+                              : "N/A"}
+                          </td>
+                          <td className="p-3">
+                            {comparisonData.location_b.surface_heat_index !== null && comparisonData.location_b.surface_heat_index !== undefined
+                              ? `${comparisonData.location_b.surface_heat_index}/10`
+                              : "N/A"}
+                          </td>
                           <td className="p-3 font-bold text-amber-400">
                             {comparisonData.differentials.surface_heat_index_delta > 0 ? "+" : ""}
                             {comparisonData.differentials.surface_heat_index_delta}
@@ -1807,14 +1867,18 @@ export default function EcoPulseProductionDashboard() {
                       const isSelected = loc.id === selectedLoc;
                       const markerColor =
                         mapMetric === "ndvi"
-                          ? (loc.ndvi_mean ?? 0) > 0.4
+                          ? loc.ndvi_mean === null || loc.ndvi_mean === undefined
+                            ? "#64748b"
+                            : loc.ndvi_mean > 0.4
                             ? "#10b981"
-                            : (loc.ndvi_mean ?? 0) > 0.25
+                            : loc.ndvi_mean > 0.25
                             ? "#84cc16"
                             : "#f59e0b"
-                          : (loc.surface_heat_index ?? 0) > 6
+                          : loc.surface_heat_index === null || loc.surface_heat_index === undefined
+                          ? "#64748b"
+                          : loc.surface_heat_index > 6
                           ? "#ef4444"
-                          : (loc.surface_heat_index ?? 0) > 4
+                          : loc.surface_heat_index > 4
                           ? "#f59e0b"
                           : "#10b981";
 
@@ -1889,19 +1953,19 @@ export default function EcoPulseProductionDashboard() {
                             {mapMetric === "ndvi" ? (
                               <div>
                                 <span className="text-emerald-400 font-bold">
-                                  NDVI: {loc.ndvi_mean}
+                                  NDVI: {typeof loc.ndvi_mean === "number" && !isNaN(loc.ndvi_mean) ? loc.ndvi_mean : "N/A"}
                                 </span>
                                 <div className="text-[10px] text-slate-400">
-                                  Canopy: {loc.tree_canopy_pct}%
+                                  Canopy: {typeof loc.tree_canopy_pct === "number" && !isNaN(loc.tree_canopy_pct) ? `${loc.tree_canopy_pct}%` : "N/A"}
                                 </div>
                               </div>
                             ) : (
                               <div>
                                 <span className="text-amber-400 font-bold">
-                                  Heat: {loc.surface_heat_index}/10
+                                  Heat: {typeof loc.surface_heat_index === "number" && !isNaN(loc.surface_heat_index) ? `${loc.surface_heat_index}/10` : "N/A"}
                                 </span>
                                 <div className="text-[10px] text-slate-400">
-                                  Built: {loc.built_up_ratio_pct}%
+                                  Built: {typeof loc.built_up_ratio_pct === "number" && !isNaN(loc.built_up_ratio_pct) ? `${loc.built_up_ratio_pct}%` : "N/A"}
                                 </div>
                               </div>
                             )}
@@ -1988,11 +2052,11 @@ export default function EcoPulseProductionDashboard() {
                     NDVI {unifiedData.greenery?.ndvi_mean ?? "N/A"}
                   </div>
                   <p className="text-xs text-slate-300">
-                    Canopy: <strong>{unifiedData.greenery?.tree_canopy_pct}%</strong> | Built-up:{" "}
-                    <strong>{unifiedData.greenery?.built_up_ratio_pct}%</strong>
+                    Canopy: <strong>{typeof unifiedData.greenery?.tree_canopy_pct === "number" && !isNaN(unifiedData.greenery.tree_canopy_pct) ? `${unifiedData.greenery.tree_canopy_pct}%` : "N/A"}</strong> | Built-up:{" "}
+                    <strong>{typeof unifiedData.greenery?.built_up_ratio_pct === "number" && !isNaN(unifiedData.greenery.built_up_ratio_pct) ? `${unifiedData.greenery.built_up_ratio_pct}%` : "N/A"}</strong>
                   </p>
                   <p className="text-xs text-slate-400 font-mono">
-                    Surface Heat: {unifiedData.heat?.surface_heat_index}/10 ({unifiedData.heat?.heat_classification})
+                    Surface Heat: {typeof unifiedData.heat?.surface_heat_index === "number" && !isNaN(unifiedData.heat.surface_heat_index) ? `${unifiedData.heat.surface_heat_index}/10` : "N/A"}{unifiedData.heat?.heat_classification ? ` (${unifiedData.heat.heat_classification})` : ""}
                   </p>
                 </div>
 

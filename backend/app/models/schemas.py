@@ -275,12 +275,12 @@ class LocationMapFeature(BaseModel):
     longitude: float
     zone: str
     ward: str
-    ndvi_mean: float
-    greenery_classification: str
-    tree_canopy_pct: float
-    built_up_ratio_pct: float
-    surface_heat_index: float
-    heat_classification: str
+    ndvi_mean: Optional[float] = None
+    greenery_classification: Optional[str] = None
+    tree_canopy_pct: Optional[float] = None
+    built_up_ratio_pct: Optional[float] = None
+    surface_heat_index: Optional[float] = None
+    heat_classification: Optional[str] = None
     temperature_c: Optional[float] = None
     aqi: Optional[int] = None
     aqi_category: Optional[str] = None
