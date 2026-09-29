@@ -26,6 +26,19 @@ EcoPulse Mumbai currently supports **14 micro-locations** across all major zones
 
 ```
 e:/ESE PROJECT/
+├── frontend/                     # Next.js 14 + React 18 + Tailwind CSS App
+│   ├── src/
+│   │   ├── app/                  # App Router (layout, globals.css, page)
+│   │   ├── components/
+│   │   │   ├── dashboard/        # Modular Dashboard Cards (Hero, AQI, Map, Forecast, etc.)
+│   │   │   ├── landing/          # Interactive Landing Experience with 3D Globe
+│   │   │   └── ui/               # Reusable UI primitives
+│   │   ├── types/                # TypeScript Interfaces & Schemas
+│   │   └── utils/                # API client and helper functions
+│   ├── public/                   # Static assets, maps, and icons
+│   ├── package.json              # Frontend dependencies and scripts
+│   ├── tailwind.config.js        # Tailwind design tokens & dark mode config
+│   └── tsconfig.json             # TypeScript configuration
 ├── backend/                      # Python 3.11 + FastAPI Service
 │   ├── app/
 │   │   ├── main.py               # Application bootstrap & CORS configuration
@@ -47,8 +60,9 @@ e:/ESE PROJECT/
 
 ---
 
-## 4. Running the Backend
+## 4. Running the Project Locally
 
+### A. Backend (FastAPI)
 ```bash
 cd backend
 python -m venv venv
@@ -63,9 +77,25 @@ uvicorn app.main:app --reload --port 8000
 * Locations: `http://localhost:8000/api/locations`
 * Environmental Snapshot: `http://localhost:8000/api/environment/borivali`
 
+### B. Frontend (Next.js)
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+* Frontend Web App: `http://localhost:3000`
+
 ---
 
-## 5. Verification & Tests
+## 5. Vercel Deployment Note
+When deploying to Vercel:
+* In your Vercel Project Settings -> **General** -> **Root Directory**: set to `frontend`.
+* Add environment variable: `NEXT_PUBLIC_API_URL=https://<your-backend-domain>/api`.
+
+---
+
+## 6. Verification & Tests
 
 ```bash
 cd backend
