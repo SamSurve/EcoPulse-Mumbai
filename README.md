@@ -57,3 +57,7 @@ If you prefer running via Node.js:
    npm run dev
    ```
 3. Open `http://localhost:3000`.
+
+## Team & Contributors
+
+* **YuvrajsinghAIML** - Frontend Engineering & UI/UX Polish
