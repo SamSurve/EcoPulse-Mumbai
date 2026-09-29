@@ -12,6 +12,29 @@
     background-color: #030e0b;
     color: #f1f5f9;
   }
+
+  /* Global Smooth Theme Transitions */
+  *,
+  *::before,
+  *::after {
+    transition-property: background-color, border-color, color, fill, stroke, box-shadow;
+    transition-duration: 250ms;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Exempt 3D canvas, Leaflet map tiles/markers, and spin animations from color transitions to prevent jitter */
+  canvas,
+  .leaflet-container,
+  .leaflet-container *,
+  .custom-map-marker,
+  .custom-leaflet-satellite-marker,
+  .animate-ping,
+  .animate-spin,
+  .animate-pulse,
+  .animate-float-slow,
+  .animate-pulse-glow {
+    transition-property: none !important;
+  }
 }
 
 @keyframes pulseGlow {
