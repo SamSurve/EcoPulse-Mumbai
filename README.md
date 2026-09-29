@@ -1,103 +1,188 @@
-# EcoPulse Mumbai — Environmental Intelligence Web Platform
+# EcoPulse Mumbai — Environmental Intelligence Platform
 
-A software-only, data-driven environmental intelligence platform designed specifically for the unique coastal, high-density, and ecologically complex urban landscape of Mumbai, India.
-
----
-
-## 1. Project Overview
-
-EcoPulse Mumbai allows users to select any neighborhood across the Mumbai Metropolitan Region (MMR) and understand its environmental conditions across three core product capabilities:
-1. **Air & Microclimate:** Real-time ground station and numerical atmospheric measurements ($PM_{2.5}, PM_{10}, NO_2, SO_2, CO, O_3$), official CPCB NAQI calculation, microclimate metrics (Temperature, Humidity, Heat Index, Wind, Solar Radiation), and 24h historical trends.
-2. **Greenery & Heat Analysis:** Satellite-derived surface indicators (Sentinel-2 NDVI vegetation vigor, tree canopy %, impervious surface %, Landsat thermal surface heat proxies), and cross-area comparisons (e.g. *Borivali vs Andheri*).
-3. **Environmental Risk & Prediction:** 30-day baseline Z-score anomaly detection, 72h future trend projections with communicated uncertainty, and an **explainable risk engine** with natural-language reasoning (explaining exactly why an area's risk is elevated, with zero opaque black-box scores).
+EcoPulse Mumbai is an environmental science and engineering web platform built to monitor hyper-local air quality, urban microclimates, greenery cover, and urban heat island effects across 14 municipal areas in Mumbai. It combines verified ground-station data, atmospheric dispersion models, and satellite imagery to provide real-time environmental metrics, 72-hour future forecasts, and explainable risk scores without requiring any specialized hardware.
 
 ---
 
-## 2. Supported Mumbai Locations
+## Main Features
 
-EcoPulse Mumbai currently supports **14 micro-locations** across all major zones of Mumbai:
-* **Western Suburbs:** Borivali, Kandivali, Malad, Andheri, Bandra
-* **Central & Island City:** Bandra Kurla Complex (BKC), Dadar, Worli, Colaba, Sion, Kurla
-* **Eastern Suburbs:** Powai, Chembur, Mulund
+* **Air Quality & NAQI Calculation**: Real-time concentrations of 6 major pollutants ($PM_{2.5}, PM_{10}, NO_2, SO_2, CO, O_3$) with official Central Pollution Control Board (CPCB) National Air Quality Index (NAQI) sub-indices and categories (Good to Severe).
+* **Urban Microclimate Monitoring**: Ambient temperature, relative humidity, apparent heat index, wind velocity, and solar radiation.
+* **Satellite Greenery & Urban Heat (UHI)**: Sentinel-2 NDVI vegetative vigor, tree canopy percentage, built-up impervious surface ratio, and Landsat Land Surface Temperature (LST) heat island intensity.
+* **72-Hour Predictive Forecast**: Forward-looking hourly trajectory charts for air quality and weather with communicated uncertainty boundaries.
+* **Explainable Environmental Risk Engine**: Composite risk scoring (1–100) that gives plain-English explanations of why an area's risk is elevated (e.g. atmospheric stagnation, high thermal load, or traffic particulate spikes).
+* **Side-by-Side Area Comparison**: Direct comparison between any two Mumbai neighborhoods (e.g., *Borivali vs Andheri*) across vegetation cover, heat retention, and pollution levels.
+* **Interactive 3D Earth & Satellite GIS Map**: Cinematic 3D globe landing experience and high-resolution Leaflet satellite map displaying all 14 Mumbai monitoring stations.
+* **Light & Dark Mode**: Cohesive, smooth 250ms theme switching across every dashboard component.
 
 ---
 
-## 3. Project Structure
+## Tech Stack
 
-```
-e:/ESE PROJECT/
-├── frontend/                     # Next.js 14 + React 18 + Tailwind CSS App
+* **Frontend**: Next.js 14, React 18, TypeScript, Tailwind CSS, Leaflet GIS, Three.js, Globe.gl, Chart.js, Lucide Icons
+* **Backend**: Python 3.11+, FastAPI, Pydantic v2, HTTPX, Uvicorn
+* **Data Sources**: Open-Meteo Air Quality (Copernicus CAMS), Open-Meteo Weather, Copernicus Sentinel-2 (NDVI), Landsat-8/9 (Thermal LST), CPCB NAQI Standards
+
+---
+
+## Project Structure
+
+```text
+EcoPulse-Mumbai/
+├── frontend/                 # Next.js 14 web application
 │   ├── src/
-│   │   ├── app/                  # App Router (layout, globals.css, page)
-│   │   ├── components/
-│   │   │   ├── dashboard/        # Modular Dashboard Cards (Hero, AQI, Map, Forecast, etc.)
-│   │   │   ├── landing/          # Interactive Landing Experience with 3D Globe
-│   │   │   └── ui/               # Reusable UI primitives
-│   │   ├── types/                # TypeScript Interfaces & Schemas
-│   │   └── utils/                # API client and helper functions
-│   ├── public/                   # Static assets, maps, and icons
-│   ├── package.json              # Frontend dependencies and scripts
-│   ├── tailwind.config.js        # Tailwind design tokens & dark mode config
-│   └── tsconfig.json             # TypeScript configuration
-├── backend/                      # Python 3.11 + FastAPI Service
+│   │   ├── app/              # Next.js App Router (layout, page, styles)
+│   │   ├── components/       # Dashboard & landing page components
+│   │   ├── services/         # API client connecting to backend
+│   │   └── types/            # TypeScript data models
+│   ├── public/               # Static assets & icons
+│   ├── package.json          # Node dependencies & build scripts
+│   ├── tailwind.config.js    # Tailwind theme & color tokens
+│   └── tsconfig.json         # TypeScript configuration
+├── backend/                  # FastAPI Python backend
 │   ├── app/
-│   │   ├── main.py               # Application bootstrap & CORS configuration
-│   │   ├── config.py             # Pydantic environment configuration
-│   │   ├── models/schemas.py     # Normalized Pydantic models for all 3 features
-│   │   ├── data/locations.py     # 14 Mumbai locations with coordinates & wards
-│   │   ├── adapters/             # Modular provider adapters (Open-Meteo, Satellite, OpenAQ)
-│   │   ├── services/             # In-memory TTL cache, CPCB NAQI math, risk engine
-│   │   └── routers/              # API routers (/api/locations, /api/environment)
-│   ├── tests/test_backend.py     # Unit and integration test suite
-│   ├── run_verification.py       # Standalone self-verification test runner
-│   ├── requirements.txt          # Python dependencies
-│   ├── README.md                 # Backend setup guide
-│   └── .env.example              # Environment variables template
-├── ECOPULSE_MUMBAI_BLUEPRINT.md  # Architectural blueprint & phased roadmap
-├── MASTER_ENGINEERING_SPECIFICATION.md # Master engineering instruction specification
-└── README.md                     # Root project overview
+│   │   ├── adapters/         # Open-Meteo, OpenAQ & Satellite adapters
+│   │   ├── core/             # HTTP client pooling & logging
+│   │   ├── data/             # 14 Mumbai location coordinates & wards
+│   │   ├── models/           # Pydantic data schemas
+│   │   ├── routers/          # API endpoints (/api/locations, /api/environment)
+│   │   ├── services/         # CPCB NAQI math, risk engine & TTL cache
+│   │   └── static/           # Standalone fallback dashboard
+│   ├── tests/                # Automated backend test suite
+│   ├── requirements.txt      # Python dependencies
+│   └── run_verification.py   # Standalone 6-point verification script
+├── .env.example              # Backend environment template
+├── .gitignore                # Git ignore rules
+├── LICENSE                   # MIT License
+└── README.md                 # Project documentation
 ```
 
 ---
 
-## 4. Running the Project Locally
+## How to Run Backend
 
-### A. Backend (FastAPI)
+### Prerequisites
+* Python 3.10 or higher
+* `pip` package manager
+
+### Steps
+
 ```bash
+# 1. Navigate to the backend directory
 cd backend
+
+# 2. Create a virtual environment
 python -m venv venv
-.\venv\Scripts\activate   # Windows (or source venv/bin/activate on Linux/Mac)
+
+# 3. Activate the virtual environment
+# On Windows (PowerShell):
+.\venv\Scripts\Activate.ps1
+# On Windows (Command Prompt):
+.\venv\Scripts\activate.bat
+# On macOS / Linux:
+source venv/bin/activate
+
+# 4. Install dependencies
 pip install -r requirements.txt
-uvicorn app.main:app --reload --port 8000
+
+# 5. Start the FastAPI server
+python -m uvicorn app.main:app --reload --port 8000
 ```
 
-* API Root: `http://localhost:8000`
-* Swagger UI: `http://localhost:8000/docs`
-* Health Check: `http://localhost:8000/api/health`
-* Locations: `http://localhost:8000/api/locations`
-* Environmental Snapshot: `http://localhost:8000/api/environment/borivali`
+* API will be live at: `http://localhost:8000`
+* Interactive API Documentation (Swagger): `http://localhost:8000/docs`
+* System Health Check: `http://localhost:8000/api/health`
 
-### B. Frontend (Next.js)
+---
+
+## How to Run Frontend
+
+### Prerequisites
+* Node.js 18.x or higher
+* `npm` package manager
+
+### Steps
+
 ```bash
+# 1. Navigate to the frontend directory
 cd frontend
+
+# 2. Install dependencies
 npm install
+
+# 3. Start the Next.js development server
 npm run dev
 ```
 
-* Frontend Web App: `http://localhost:3000`
+* Open your browser and navigate to: **`http://localhost:3000`**
 
 ---
 
-## 5. Vercel Deployment Note
-When deploying to Vercel:
-* In your Vercel Project Settings -> **General** -> **Root Directory**: set to `frontend`.
-* Add environment variable: `NEXT_PUBLIC_API_URL=https://<your-backend-domain>/api`.
+## How Frontend Connects to Backend
+
+1. When you select a location or open the dashboard, the frontend calls the REST API via [`frontend/src/services/apiClient.ts`](./frontend/src/services/apiClient.ts).
+2. By default, requests are sent to `http://localhost:8000/api`.
+3. This URL is controlled by the `NEXT_PUBLIC_API_URL` environment variable in `frontend/.env.local`.
+4. The backend returns standardized JSON objects defined by Pydantic models in [`backend/app/models/schemas.py`](./backend/app/models/schemas.py) and typed in [`frontend/src/types/api.ts`](./frontend/src/types/api.ts).
+5. If the backend is offline, the frontend handles the error gracefully and displays a connection notice without crashing.
 
 ---
 
-## 6. Verification & Tests
+## Data & API Sources
 
-```bash
-cd backend
-python run_verification.py
-```
+| Data Source | Information Provided | Authentication |
+| :--- | :--- | :--- |
+| **Open-Meteo Air Quality** | Hourly $PM_{2.5}, PM_{10}, NO_2, SO_2, CO, O_3$ from Copernicus CAMS and 72-hour forecasts | Free / Open (No key required) |
+| **Open-Meteo Weather** | Temperature, relative humidity, apparent heat index, wind velocity, and solar radiation | Free / Open (No key required) |
+| **Copernicus Sentinel-2** | 10m Normalized Difference Vegetation Index (NDVI) and tree canopy density | Open Earth Observation baseline |
+| **Landsat-8 / Landsat-9** | Thermal Infrared Sensor (TIRS) surface heat proxies and Urban Heat Island (UHI) intensity | Open USGS/NASA baseline |
+| **CPCB Standards** | Official Indian National Air Quality Index (NAQI) breakpoint tables and sub-index formulas | Published Indian government standard |
+
+---
+
+## Important Environment Variables
+
+### Backend (`backend/.env` or root `.env`)
+* `PORT`: Server port (default: `8000`).
+* `HOST`: Server host (default: `0.0.0.0`).
+* `CORS_ORIGINS`: Comma-separated list of allowed frontend origins (default: `http://localhost:3000,http://127.0.0.1:3000`).
+* `CACHE_TTL_SECONDS`: In-memory cache duration to prevent API rate limits (default: `900` seconds / 15 minutes).
+* `OPENAQ_API_KEY`: *(Optional)* Free API key from openaq.org for direct ground-station feeds.
+
+### Frontend (`frontend/.env.local`)
+* `NEXT_PUBLIC_API_URL`: Backend API base URL (default: `http://localhost:8000/api`).
+* `NEXT_PUBLIC_MAP_API_KEY`: *(Optional)* Map tile key if using a custom tile provider. By default, high-resolution Esri Satellite imagery is loaded without an API key.
+
+---
+
+## Basic Troubleshooting
+
+* **Backend port already in use (`error: [Errno 10048]`)**:
+  Another application is using port 8000. Either stop that process or run on another port:
+  ```bash
+  python -m uvicorn app.main:app --reload --port 8001
+  ```
+  Then update `NEXT_PUBLIC_API_URL=http://localhost:8001/api` in `frontend/.env.local`.
+
+* **CORS error in browser console**:
+  Verify the backend is running and `CORS_ORIGINS` in your backend configuration contains `http://localhost:3000`.
+
+* **Frontend dependencies or build failure**:
+  Delete the temporary `.next` folder and reinstall packages:
+  ```bash
+  cd frontend
+  npm install
+  npm run build
+  ```
+
+* **Map tiles appear blank**:
+  Ensure your machine has an active internet connection. The satellite map loads aerial tiles directly from Esri World Imagery.
+
+---
+
+## Team & Project Information
+
+* **Project**: EcoPulse Mumbai — Environmental Science for Engineering (ESE) Project
+* **Scope**: Mumbai Metropolitan Region (MMR) — 14 Municipal Locations
+* **Team**: EcoPulse Research Team (Siddhant Surve & Contributors)
+* **License**: This project is licensed under the [MIT License](./LICENSE).

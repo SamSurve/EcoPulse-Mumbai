@@ -300,8 +300,7 @@ EcoSphere is designed as a **modular, multi-service, automated environmental pla
 | - Hourly AQI Sync  | <-------------> | - Societies/Flats  | <---------> | - Gemini 2.0 Flash |
 | - Daily Solar Sync |                 | - Scored Audits    |             | - Overpass & Places|
 | - MPCB Registry ETL|                 | - Drop-off GeoJSON |             | - WAQI             |
-+--------------------+                 +--------------------+             +--------------------+
-```
++--------------------+                 +--------------------+             +--------------------+\n```
 
 ### 7.2 Automation Workflows (Zero Manual Friction)
 1. **Automated Environmental Weather & Air Cron Job:**

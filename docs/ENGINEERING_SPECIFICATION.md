@@ -253,10 +253,10 @@ e:/ESE PROJECT/
 │   │   ├── lib/
 │   │   │   ├── api.ts                  # Typed client for backend REST API
 │   │   │   └── types.ts                # TypeScript interface contracts
-│   ├── package.json
-│   ├── tsconfig.json
-│   ├── tailwind.config.ts
-│   └── next.config.ts
+│   │   ├── package.json
+│   │   ├── tsconfig.json
+│   │   ├── tailwind.config.ts
+│   │   └── next.config.ts
 ├── ECOPULSE_MUMBAI_BLUEPRINT.md
 ├── MASTER_ENGINEERING_SPECIFICATION.md
 └── PROJECT_DISCOVERY_AND_FEASIBILITY_REPORT.md
