@@ -29,22 +29,22 @@ export const GreeneryHeatSection: React.FC<GreeneryHeatSectionProps> = ({ greene
               <span>🌱</span> Vegetative Vigor (NDVI 10m)
             </span>
             <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-              {greenery.greenery_classification}
+              {greenery.greenery_classification || "Vegetated"}
             </span>
           </div>
           <div className="flex items-end justify-between">
             <div>
-              <span className="text-2xl font-black text-white">{greenery.ndvi_mean.toFixed(2)}</span>
+              <span className="text-2xl font-black text-white">{greenery.ndvi_mean != null ? greenery.ndvi_mean.toFixed(2) : "N/A"}</span>
               <span className="text-xs text-slate-400 ml-1">mean</span>
             </div>
             <div className="text-right text-xs text-slate-400">
-              Tree Canopy: <span className="text-slate-200 font-semibold">{greenery.tree_canopy_pct.toFixed(1)}%</span>
+              Tree Canopy: <span className="text-slate-200 font-semibold">{greenery.tree_canopy_pct != null ? `${greenery.tree_canopy_pct.toFixed(1)}%` : "N/A"}</span>
             </div>
           </div>
           <div className="w-full bg-slate-800 h-2 rounded-full mt-2.5 overflow-hidden">
             <div
               className="bg-gradient-to-r from-emerald-500 to-teal-400 h-full rounded-full transition-all duration-500"
-              style={{ width: `${Math.min(100, Math.max(10, greenery.ndvi_mean * 150))}%` }}
+              style={{ width: `${Math.min(100, Math.max(10, (greenery.ndvi_mean ?? 0) * 150))}%` }}
             ></div>
           </div>
           <div className="text-[10px] text-slate-400 mt-1.5 flex justify-between">
@@ -60,12 +60,12 @@ export const GreeneryHeatSection: React.FC<GreeneryHeatSectionProps> = ({ greene
               <span>🔥</span> Landsat Surface Thermal Index
             </span>
             <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-orange-500/10 text-orange-400 border border-orange-500/20">
-              {heat.heat_classification}
+              {heat.heat_classification || "Moderate"}
             </span>
           </div>
           <div className="flex items-end justify-between">
             <div>
-              <span className="text-2xl font-black text-white">{heat.surface_heat_index.toFixed(1)}</span>
+              <span className="text-2xl font-black text-white">{heat.surface_heat_index != null ? heat.surface_heat_index.toFixed(1) : "N/A"}</span>
               <span className="text-xs text-slate-400 ml-1">/ 10</span>
             </div>
             <div className="text-right text-xs text-slate-400">
@@ -75,7 +75,7 @@ export const GreeneryHeatSection: React.FC<GreeneryHeatSectionProps> = ({ greene
           <div className="w-full bg-slate-800 h-2 rounded-full mt-2.5 overflow-hidden">
             <div
               className="bg-gradient-to-r from-amber-500 to-rose-500 h-full rounded-full transition-all duration-500"
-              style={{ width: `${(heat.surface_heat_index / 10) * 100}%` }}
+              style={{ width: `${((heat.surface_heat_index ?? 0) / 10) * 100}%` }}
             ></div>
           </div>
           <div className="text-[10px] text-slate-400 mt-1.5 flex justify-between">
@@ -96,7 +96,7 @@ export const GreeneryHeatSection: React.FC<GreeneryHeatSectionProps> = ({ greene
       </div>
 
       <div className="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400">
-        <span>5-Yr Vegetative Trend: <strong className="text-slate-200">{greenery.vegetation_change_5yr_pct >= 0 ? '+' : ''}{greenery.vegetation_change_5yr_pct.toFixed(1)}%</strong></span>
+        <span>5-Yr Vegetative Trend: <strong className="text-slate-200">{greenery.vegetation_change_5yr_pct != null ? `${greenery.vegetation_change_5yr_pct >= 0 ? '+' : ''}${greenery.vegetation_change_5yr_pct.toFixed(1)}%` : "N/A"}</strong></span>
         <span className="font-mono text-[10px] text-slate-400">SATELLITE_BASELINE</span>
       </div>
     </section>

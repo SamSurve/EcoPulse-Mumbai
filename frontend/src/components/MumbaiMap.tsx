@@ -23,7 +23,7 @@ export const MumbaiMap: React.FC<MumbaiMapProps> = ({
 
   const loadMapData = async () => {
     try {
-      const data = await apiClient.getMumbaiMapFeatures();
+      const data = await apiClient.getMapFeaturesDirect();
       setMapFeatures(data.locations);
     } catch (err) {
       console.error("Failed to load map features:", err);
@@ -34,12 +34,12 @@ export const MumbaiMap: React.FC<MumbaiMapProps> = ({
 
   const getMarkerColor = (loc: LocationMapFeature) => {
     if (activeLayer === "ndvi") {
-      if (loc.ndvi_mean >= 0.40) return { bg: "bg-emerald-500", text: "text-emerald-400", border: "border-emerald-500" };
-      if (loc.ndvi_mean >= 0.25) return { bg: "bg-cyan-500", text: "text-cyan-400", border: "border-cyan-500" };
+      if ((loc.ndvi_mean ?? 0) >= 0.40) return { bg: "bg-emerald-500", text: "text-emerald-400", border: "border-emerald-500" };
+      if ((loc.ndvi_mean ?? 0) >= 0.25) return { bg: "bg-cyan-500", text: "text-cyan-400", border: "border-cyan-500" };
       return { bg: "bg-amber-500", text: "text-amber-400", border: "border-amber-500" };
     } else if (activeLayer === "heat") {
-      if (loc.surface_heat_index >= 7.5) return { bg: "bg-rose-500", text: "text-rose-400", border: "border-rose-500" };
-      if (loc.surface_heat_index >= 5.5) return { bg: "bg-orange-500", text: "text-orange-400", border: "border-orange-500" };
+      if ((loc.surface_heat_index ?? 0) >= 7.5) return { bg: "bg-rose-500", text: "text-rose-400", border: "border-rose-500" };
+      if ((loc.surface_heat_index ?? 0) >= 5.5) return { bg: "bg-orange-500", text: "text-orange-400", border: "border-orange-500" };
       return { bg: "bg-emerald-500", text: "text-emerald-400", border: "border-emerald-500" };
     } else {
       if (loc.aqi && loc.aqi > 200) return { bg: "bg-rose-500", text: "text-rose-400", border: "border-rose-500" };
@@ -104,8 +104,8 @@ export const MumbaiMap: React.FC<MumbaiMapProps> = ({
             const isSelected = loc.id === currentLocationId;
             const colors = getMarkerColor(loc);
 
-            let primaryDisplay = `NDVI: ${loc.ndvi_mean.toFixed(2)}`;
-            if (activeLayer === "heat") primaryDisplay = `Heat: ${loc.surface_heat_index.toFixed(1)}/10`;
+            let primaryDisplay = `NDVI: ${loc.ndvi_mean != null ? loc.ndvi_mean.toFixed(2) : "N/A"}`;
+            if (activeLayer === "heat") primaryDisplay = `Heat: ${loc.surface_heat_index != null ? loc.surface_heat_index.toFixed(1) : "N/A"}/10`;
             if (activeLayer === "aqi") primaryDisplay = `AQI: ${loc.aqi || "--"}`;
 
             return (

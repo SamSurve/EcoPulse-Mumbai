@@ -23,7 +23,7 @@ export const AreaComparison: React.FC<AreaComparisonProps> = ({ locations }) => 
   const loadComparison = async () => {
     setLoading(true);
     try {
-      const data = await apiClient.compareLocations(locA, locB);
+      const data = await apiClient.compareLocationsDirect(locA, locB);
       setComparison(data);
     } catch (err) {
       console.error("Comparison load error:", err);

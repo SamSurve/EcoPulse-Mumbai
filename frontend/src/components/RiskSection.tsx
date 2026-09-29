@@ -89,47 +89,47 @@ export const RiskSection: React.FC<RiskSectionProps> = ({ risk, locationName }) 
           <div>
             <div className="flex justify-between text-xs mb-1">
               <span className="text-slate-400">Air Pollution (PM2.5, AQI)</span>
-              <span className="font-mono text-slate-300">{factors.air_quality_stress_score.toFixed(0)}/100</span>
+              <span className="font-mono text-slate-300">{factors.air_quality_stress_score != null ? `${factors.air_quality_stress_score.toFixed(0)}/100` : "N/A"}</span>
             </div>
             <div className="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
-              <div className="bg-amber-400 h-full rounded-full transition-all duration-500" style={{ width: `${factors.air_quality_stress_score}%` }}></div>
+              <div className="bg-amber-400 h-full rounded-full transition-all duration-500" style={{ width: `${factors.air_quality_stress_score ?? 0}%` }}></div>
             </div>
           </div>
 
           <div>
             <div className="flex justify-between text-xs mb-1">
               <span className="text-slate-400">Thermal Heat Load</span>
-              <span className="font-mono text-slate-300">{factors.thermal_stress_score.toFixed(0)}/100</span>
+              <span className="font-mono text-slate-300">{factors.thermal_stress_score != null ? `${factors.thermal_stress_score.toFixed(0)}/100` : "N/A"}</span>
             </div>
             <div className="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
-              <div className="bg-rose-400 h-full rounded-full transition-all duration-500" style={{ width: `${factors.thermal_stress_score}%` }}></div>
+              <div className="bg-rose-400 h-full rounded-full transition-all duration-500" style={{ width: `${factors.thermal_stress_score ?? 0}%` }}></div>
             </div>
           </div>
 
           <div>
             <div className="flex justify-between text-xs mb-1">
               <span className="text-slate-400">Built-Up Surface Heat Retention</span>
-              <span className="font-mono text-slate-300">{factors.surface_heat_stress_score.toFixed(0)}/100</span>
+              <span className="font-mono text-slate-300">{factors.surface_heat_stress_score != null ? `${factors.surface_heat_stress_score.toFixed(0)}/100` : "N/A"}</span>
             </div>
             <div className="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
-              <div className="bg-orange-400 h-full rounded-full transition-all duration-500" style={{ width: `${factors.surface_heat_stress_score}%` }}></div>
+              <div className="bg-orange-400 h-full rounded-full transition-all duration-500" style={{ width: `${factors.surface_heat_stress_score ?? 0}%` }}></div>
             </div>
           </div>
 
           <div>
             <div className="flex justify-between text-xs mb-1">
               <span className="text-slate-400">Atmospheric Stagnation Penalty</span>
-              <span className="font-mono text-slate-300">{factors.dispersion_stress_score.toFixed(0)}/100</span>
+              <span className="font-mono text-slate-300">{factors.dispersion_stress_score != null ? `${factors.dispersion_stress_score.toFixed(0)}/100` : "N/A"}</span>
             </div>
             <div className="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
-              <div className="bg-cyan-400 h-full rounded-full transition-all duration-500" style={{ width: `${factors.dispersion_stress_score}%` }}></div>
+              <div className="bg-cyan-400 h-full rounded-full transition-all duration-500" style={{ width: `${factors.dispersion_stress_score ?? 0}%` }}></div>
             </div>
           </div>
 
           <div className="pt-2 flex items-center justify-between text-xs border-t border-slate-800/80">
             <span className="text-slate-400">Vegetative Cooling Offset:</span>
             <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">
-              {factors.vegetative_buffer_status}
+              {factors.vegetative_buffer_status || "MODERATE"}
             </span>
           </div>
         </div>
