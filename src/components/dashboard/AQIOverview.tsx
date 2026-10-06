@@ -11,12 +11,12 @@ interface AQIOverviewProps {
 }
 
 const CPCB_BUCKETS = [
-  { range: "0 - 50", label: "Good", color: "#10b981", bg: "bg-emerald-500", text: "text-emerald-700 dark:text-emerald-400" },
-  { range: "51 - 100", label: "Satisfactory", color: "#84cc16", bg: "bg-lime-500", text: "text-lime-700 dark:text-lime-400" },
-  { range: "101 - 200", label: "Moderate", color: "#eab308", bg: "bg-yellow-500", text: "text-yellow-700 dark:text-yellow-400" },
-  { range: "201 - 300", label: "Poor", color: "#f97316", bg: "bg-orange-500", text: "text-orange-700 dark:text-orange-400" },
-  { range: "301 - 400", label: "Very Poor", color: "#ef4444", bg: "bg-red-500", text: "text-red-700 dark:text-red-400" },
-  { range: "401 - 500", label: "Severe", color: "#7f1d1d", bg: "bg-rose-900", text: "text-rose-700 dark:text-rose-400" },
+  { range: "0-50", label: "Good", color: "#10b981", bg: "bg-emerald-500", text: "text-emerald-700 dark:text-emerald-400" },
+  { range: "51-100", label: "Satisfactory", color: "#84cc16", bg: "bg-lime-500", text: "text-lime-700 dark:text-lime-400" },
+  { range: "101-200", label: "Moderate", color: "#eab308", bg: "bg-yellow-500", text: "text-yellow-700 dark:text-yellow-400" },
+  { range: "201-300", label: "Poor", color: "#f97316", bg: "bg-orange-500", text: "text-orange-700 dark:text-orange-400" },
+  { range: "301-400", label: "Very Poor", color: "#ef4444", bg: "bg-red-500", text: "text-red-700 dark:text-red-400" },
+  { range: "401-500", label: "Severe", color: "#7f1d1d", bg: "bg-rose-900", text: "text-rose-700 dark:text-rose-400" },
 ];
 
 export function AQIOverview({ airData, isLoading = false, theme = "light" }: AQIOverviewProps) {
@@ -129,7 +129,7 @@ export function AQIOverview({ airData, isLoading = false, theme = "light" }: AQI
             return (
               <div
                 key={idx}
-                className={`flex items-center justify-between px-2.5 py-1 rounded-lg text-xs transition-colors ${
+                className={`flex items-center justify-between px-2 py-1 rounded-lg transition-colors ${
                   isCurrent
                     ? isDark
                       ? "bg-emerald-950/80 border border-emerald-700/80 text-emerald-300 font-bold"
@@ -137,11 +137,11 @@ export function AQIOverview({ airData, isLoading = false, theme = "light" }: AQI
                     : "text-slate-600 dark:text-slate-400"
                 }`}
               >
-                <div className="flex items-center gap-2">
-                  <span className={`w-2.5 h-2.5 rounded-full ${bucket.bg}`} />
-                  <span className="font-mono text-[11px] text-slate-700 dark:text-slate-300">{bucket.range}</span>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <span className={`w-2 h-2 rounded-full shrink-0 ${bucket.bg}`} />
+                  <span className="font-mono text-[10px] xl:text-[11px] whitespace-nowrap text-slate-700 dark:text-slate-300">{bucket.range}</span>
                 </div>
-                <span className={isCurrent ? (isDark ? "text-emerald-300 font-bold" : "text-emerald-800 font-bold") : "text-slate-600 dark:text-slate-400"}>
+                <span className={`whitespace-nowrap text-[10px] xl:text-[11px] text-right truncate ml-1 ${isCurrent ? (isDark ? "text-emerald-300 font-bold" : "text-emerald-800 font-bold") : "text-slate-600 dark:text-slate-400"}`}>
                   {bucket.label}
                 </span>
               </div>

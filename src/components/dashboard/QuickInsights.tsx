@@ -61,7 +61,7 @@ export function QuickInsights({
   ];
 
   return (
-    <div className="rounded-2xl bg-white dark:bg-[#0b1220] border border-slate-200/90 dark:border-slate-800/80 p-5 shadow-sm flex flex-col justify-between space-y-3 transition-colors duration-200">
+    <div className="rounded-2xl bg-white dark:bg-[#0b1220] border border-slate-200/90 dark:border-slate-800/80 p-5 shadow-sm flex flex-col space-y-3 transition-colors duration-200 h-full">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2.5">
@@ -97,6 +97,17 @@ export function QuickInsights({
             </div>
           );
         })}
+      </div>
+
+      {/* Additional Detail Box */}
+      <div className="mt-auto p-3 bg-slate-50 dark:bg-[#111827]/80 rounded-xl border border-slate-200/80 dark:border-slate-800/80 text-xs text-slate-600 dark:text-slate-400">
+        <div className="flex justify-between items-center mb-1">
+          <span className="font-semibold text-slate-800 dark:text-slate-300">Dominant Pollutant</span>
+          <span className="font-mono text-rose-500 dark:text-rose-400 font-bold uppercase">{airData?.dominant_pollutant || "PM2.5"}</span>
+        </div>
+        <p className="leading-relaxed">
+          Based on recent telemetry, <strong className="text-slate-700 dark:text-slate-300">{airData?.dominant_pollutant || "PM2.5"}</strong> levels are the primary driver of the current air quality index in {locationName}.
+        </p>
       </div>
     </div>
   );
