@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Maximize2, Navigation, ZoomIn, ZoomOut, Compass } from "lucide-react";
 import { Location } from "../../types/api";
+import { apiClient } from "../../services/apiClient";
 
 interface EnvironmentalMapProps {
   locations: Location[];
@@ -58,8 +59,51 @@ export function EnvironmentalMap({
   const markersRef = useRef<{ [key: string]: any }>({});
   const heatLayerRef = useRef<any>(null);
   const [currentLayer, setCurrentLayer] = useState<"AQI" | "PM2.5" | "NDVI" | "LST">(activeLayer);
+  const [mapTelemetry, setMapTelemetry] = useState<Record<string, any>>(LOCATION_TELEMETRY);
 
   const effectiveLocations = locations && locations.length > 0 ? locations : DEFAULT_MUMBAI_LOCATIONS;
+
+  // Fetch real-time telemetry for all map locations
+  useEffect(() => {
+    let isMounted = true;
+    const fetchAllTelemetry = async () => {
+      const newTelemetry = { ...LOCATION_TELEMETRY };
+      
+      const promises = effectiveLocations.map(async (loc) => {
+        try {
+          const [air, weather, greenery, heat] = await Promise.all([
+            apiClient.getAirQualityDirect(loc.id),
+            apiClient.getMicroclimateDirect(loc.id),
+            apiClient.getGreeneryDirect(loc.id),
+            apiClient.getHeatDirect(loc.id)
+          ]);
+          
+          if (isMounted) {
+            newTelemetry[loc.id] = {
+              aqi: air.aqi || 100,
+              temp: weather.temperature_c || 29.9,
+              pm25: air.pm25?.value || 19.8,
+              ndvi: greenery.ndvi_mean || 0.42,
+              lst: heat.surface_heat_index || 32.5,
+              category: air.aqi_category || "Satisfactory"
+            };
+          }
+        } catch (e) {
+          console.error(`Failed to fetch telemetry for ${loc.id}`, e);
+        }
+      });
+
+      await Promise.allSettled(promises);
+      
+      if (isMounted) {
+        setMapTelemetry(newTelemetry);
+      }
+    };
+
+    fetchAllTelemetry();
+
+    return () => { isMounted = false; };
+  }, [effectiveLocations]);
 
   useEffect(() => {
     if (!mapContainerRef.current) return;
@@ -111,7 +155,7 @@ export function EnvironmentalMap({
           subdomains: ["a", "b", "c", "d"],
         }).addTo(map);
 
-        renderMarkers(L, map, currentLayer);
+        renderMarkers(L, map, currentLayer, mapTelemetry);
       } catch (err) {
         console.error("Leaflet map initialization error:", err);
       }
@@ -128,7 +172,7 @@ export function EnvironmentalMap({
     };
   }, []);
 
-  const renderMarkers = async (L: any, map: any, layer: "AQI" | "PM2.5" | "NDVI" | "LST") => {
+  const renderMarkers = async (L: any, map: any, layer: "AQI" | "PM2.5" | "NDVI" | "LST", telemetryData: Record<string, any>) => {
     Object.values(markersRef.current).forEach((m: any) => m.remove());
     markersRef.current = {};
 
@@ -139,7 +183,7 @@ export function EnvironmentalMap({
 
     effectiveLocations.forEach((loc) => {
       const isSelected = loc.id === selectedLocationId;
-      const data = LOCATION_TELEMETRY[loc.id] || { aqi: 100, temp: 29.9, pm25: 19.8, ndvi: 0.42, lst: 32.5, category: "Satisfactory" };
+      const data = telemetryData[loc.id] || LOCATION_TELEMETRY[loc.id] || { aqi: 100, temp: 29.9, pm25: 19.8, ndvi: 0.42, lst: 32.5, category: "Satisfactory" };
 
       let markerColor = "#10b981";
       let displayValue = `AQI: ${data.aqi}`;
@@ -205,10 +249,10 @@ export function EnvironmentalMap({
     if (!mapInstanceRef.current) return;
     const update = async () => {
       const L = (await import("leaflet")).default;
-      renderMarkers(L, mapInstanceRef.current, currentLayer);
+      renderMarkers(L, mapInstanceRef.current, currentLayer, mapTelemetry);
     };
     update();
-  }, [currentLayer]);
+  }, [currentLayer, mapTelemetry, selectedLocationId]);
 
   useEffect(() => {
     if (!mapInstanceRef.current) return;
