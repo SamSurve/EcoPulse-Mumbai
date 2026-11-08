@@ -1,224 +1,170 @@
+ <div align="center">
+
 # 🌍 EcoPulse Mumbai
 
-### Zero-Cost Environmental Intelligence Platform for Mumbai
+### Understand Your City. Protect Its Environment.
 
-EcoPulse Mumbai is a software-based environmental monitoring and intelligence platform designed to provide a unified view of Mumbai's environmental conditions.
+An environmental intelligence platform focused on Mumbai, combining air quality, weather and satellite observations to understand changing urban environmental conditions.
 
-The platform combines **real-time environmental data, weather information, air-quality analysis, satellite-derived greenery and heat indicators, historical trends, forecasting, and explainable risk analysis** into a single system.
+<br>
 
-It is designed specifically around Mumbai's diverse urban regions and operates without requiring any dedicated physical sensors or specialized hardware.
+![Python](https://img.shields.io/badge/Python-3.12-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-Backend-009688?style=for-the-badge&logo=fastapi&logoColor=white)
+![Open Data](https://img.shields.io/badge/Open-Data-2E8B57?style=for-the-badge)
+![Mumbai](https://img.shields.io/badge/Mumbai-14_Locations-FF8C00?style=for-the-badge)
 
----
+<br>
 
-## 🚀 What is EcoPulse Mumbai?
+**ENVIRONMENTAL INTELLIGENCE FOR MUMBAI**
 
-Mumbai experiences significant variation in air quality, temperature, greenery, traffic pollution, and urban heat across different regions.
+<sub>🌫️ Air Quality &nbsp; · &nbsp; 🌳 Green Cover &nbsp; · &nbsp; 🌡️ Urban Heat &nbsp; · &nbsp; 🌦️ Weather</sub>
 
-EcoPulse aims to make these environmental patterns easier to understand by combining multiple open-data sources and presenting them through an interactive environmental intelligence platform.
-
-The system currently focuses on **14 registered locations across Mumbai**, allowing users to:
-
-- Monitor air quality and atmospheric conditions
-- Analyze local microclimate conditions
-- Study greenery and vegetation trends
-- Analyze urban heat conditions
-- View historical environmental patterns
-- Explore 72-hour environmental forecasts
-- Compare different Mumbai locations
-- Understand environmental risk factors
-- Explore environmental information geographically
+</div>
 
 ---
 
-# 🌱 Core Features
+## 🌱 Overview
 
-## 1. Air Quality & Microclimate
+EcoPulse Mumbai brings environmental data together in one platform to make it easier to understand the city's environmental conditions.
 
-Provides environmental measurements including:
+It combines weather and air-quality information with satellite-based environmental analysis to explore pollution, vegetation, urban heat and environmental trends across Mumbai.
 
-- PM2.5
-- PM10
-- NO₂
-- SO₂
-- CO
-- O₃
-- Temperature
-- Humidity
-- Wind conditions
-- Apparent temperature / heat indicators
-- Solar radiation
+The project focuses on **14 registered locations across Mumbai**, providing a city-specific view of environmental conditions.
 
-Air-quality analysis incorporates **CPCB National Air Quality Index (NAQI)** standards where applicable.
+## ✨ Key Features
 
----
+| Feature | Description |
+|---|---|
+| 🌫️ Air Quality Monitoring | Track AQI and PM2.5 levels across selected locations |
+| 🌦️ Weather Monitoring | View temperature, humidity and weather conditions |
+| 🌳 Green Cover Analysis | Study vegetation using satellite observations |
+| 🌡️ Urban Heat Analysis | Explore temperature patterns and urban heat conditions |
+| 🔮 Environmental Forecast | View environmental forecasts up to 72 hours |
+| ⚠️ Risk Analysis | Identify locations that may require environmental attention |
+| 📊 Historical Trends | Understand changes in environmental conditions over time |
+| 📍 Location-Based Dashboard | Explore information across 14 Mumbai locations |
 
-## 2. 🌳 Greenery & Vegetation Analysis
+## 🛰️ How It Works
 
-Uses satellite-based environmental data to analyze vegetation conditions.
+```mermaid
+flowchart TB
+    USER(["👤 User"])
 
-Key indicators include:
+    subgraph SOURCES["🌐 ENVIRONMENTAL DATA SOURCES"]
+        direction LR
+        WEATHER["🌦️ Open-Meteo<br/>Weather Data"]
+        SATELLITE["🛰️ Sentinel-2<br/>Satellite Data"]
+        AIR["🌫️ Air Quality<br/>Data"]
+    end
 
-- NDVI
-- Vegetation health
-- Green-cover trends
-- Tree-canopy indicators
-- Built-up / impervious surface ratio
-- Historical vegetation changes
+    USER --> DASHBOARD["📊 EcoPulse Dashboard"]
 
-Satellite observations provide an additional environmental perspective beyond ground-level measurements.
+    WEATHER --> API["⚡ FastAPI Backend"]
+    SATELLITE --> API
+    AIR --> API
 
----
+    DASHBOARD <--> API
 
-## 3. 🔥 Urban Heat Analysis
+    API --> PROCESS["⚙️ Data Processing & Analysis"]
 
-EcoPulse analyzes urban thermal conditions using satellite-derived information.
+    subgraph ANALYSIS["🔬 ENVIRONMENTAL ANALYSIS"]
+        direction LR
+        AQI["🌫️ Air Quality"]
+        GREEN["🌳 Green Cover"]
+        HEAT["🌡️ Urban Heat"]
+        FORECAST["🔮 Forecasting"]
+    end
 
-The system provides indicators related to:
+    PROCESS --> AQI
+    PROCESS --> GREEN
+    PROCESS --> HEAT
+    PROCESS --> FORECAST
 
-- Land Surface Temperature
-- Urban heat intensity
-- Heat-retaining areas
-- Built-up regions
-- Vegetation vs heat relationships
+    AQI --> INSIGHTS["💡 Environmental Insights"]
+    GREEN --> INSIGHTS
+    HEAT --> INSIGHTS
+    FORECAST --> INSIGHTS
 
-This helps identify areas where urbanization and limited vegetation may contribute to increased thermal conditions.
+    INSIGHTS --> STORAGE[("🗄️ SQLite Database")]
+    STORAGE --> API
 
----
+    API --> OUTPUT["📈 Charts · Maps · Trends"]
+    OUTPUT --> USER
 
-## 4. 🔮 Environmental Forecasting
+    classDef user fill:#E0F2FE,stroke:#0284C7,color:#075985,stroke-width:2px
+    classDef source fill:#DCFCE7,stroke:#16A34A,color:#14532D,stroke-width:2px
+    classDef backend fill:#DBEAFE,stroke:#2563EB,color:#1E3A8A,stroke-width:2px
+    classDef analysis fill:#FEF3C7,stroke:#D97706,color:#78350F,stroke-width:2px
+    classDef insights fill:#F3E8FF,stroke:#9333EA,color:#581C87,stroke-width:2px
+    classDef output fill:#FFE4E6,stroke:#E11D48,color:#881337,stroke-width:2px
 
-EcoPulse provides a **72-hour environmental forecast** using available weather and air-quality data.
+    class USER user
+    class WEATHER,SATELLITE,AIR source
+    class API,PROCESS backend
+    class AQI,GREEN,HEAT,FORECAST analysis
+    class INSIGHTS,STORAGE insights
+    class DASHBOARD,OUTPUT output
+```
 
-Forecast information can be used to visualize:
+## 🛠️ Technology Stack
 
-- Future pollutant levels
-- Temperature trends
-- Humidity
-- Wind conditions
-- Environmental trajectories
-- Potential environmental changes
+| Category | Technologies |
+|---|---|
+| 💻 Language | Python 3.12 |
+| ⚡ Backend | FastAPI, Uvicorn |
+| ✅ Data Validation | Pydantic |
+| 🔗 API Communication | HTTPX |
+| 🗄️ Database | SQLite |
+| ⚙️ Database Configuration | WAL Mode |
+| 🌦️ Weather Data | Open-Meteo API |
+| 🛰️ Satellite Data | Sentinel-2 |
+| 🔬 Environmental Analysis | AQI, PM2.5, NDVI and urban heat analysis |
 
----
+## 📍 Mumbai Coverage
 
-## 5. ⚠️ Environmental Risk Engine
+EcoPulse is designed specifically for Mumbai, covering 14 registered locations.
 
-The platform combines multiple environmental indicators into an explainable environmental risk assessment.
+| 📌 Area | 📌 Area | 📌 Area |
+|---|---|---|
+| Borivali | Kandivali | Malad |
+| Andheri | Bandra | BKC |
+| Dadar | Worli | Colaba |
+| Sion | Kurla | Powai |
+| Chembur | Mulund | — |
 
-Instead of providing only a number, the system can explain contributing factors such as:
+## 📊 Data & Analysis
 
-- Elevated particulate pollution
-- Atmospheric stagnation
-- Increased thermal load
-- Low vegetation
-- High built-up density
-- Unfavorable weather conditions
+EcoPulse combines multiple environmental data sources and analysis methods:
 
-The objective is to make environmental information easier to interpret.
+- 🌫️ **Air Quality:** AQI and PM2.5 monitoring.
+- 🌦️ **Weather:** Temperature and humidity tracking.
+- 🛰️ **Satellite Observations:** Satellite-based vegetation analysis.
+- 🌳 **NDVI:** Understanding vegetation and green cover.
+- 🌡️ **Urban Heat:** Exploring heat patterns across urban locations.
+- 🔮 **Forecasting:** Environmental outlook for the next 72 hours.
 
----
+<sub>Satellite observations and API-based measurements have their own update cycles; the platform does not imply that every dataset is real-time.</sub>
 
-## 6. 📊 Historical Trends
+## 🔒 Reliability & Data Handling
 
-Environmental information can be analyzed across time to identify patterns and changes.
+- FastAPI backend with Pydantic validation.
+- External API communication handled using HTTPX.
+- SQLite persistence with WAL mode.
+- Environmental information organized around registered Mumbai locations.
+- Multiple environmental indicators combined to support location-based analysis.
 
-The system is designed to support analysis of:
+## 🎯 Project Goal
 
-- Pollution trends
-- Temperature patterns
-- Vegetation changes
-- Heat conditions
-- Environmental risk trends
+Mumbai faces several interconnected environmental challenges, including air pollution, urban heat and changing green cover.
 
----
-
-## 7. 🗺️ Mumbai Environmental Map
-
-EcoPulse provides an interactive geographical view of the monitored Mumbai locations.
-
-The map allows users to explore environmental information spatially and understand how conditions vary across different parts of Mumbai.
-
-Currently supported locations include:
-
-- Borivali
-- Kandivali
-- Malad
-- Andheri
-- Bandra
-- BKC
-- Dadar
-- Worli
-- Colaba
-- Sion
-- Kurla
-- Powai
-- Chembur
-- Mulund
-
----
-
-## 8. ⚖️ Area Comparison
-
-EcoPulse allows environmental conditions between different locations to be compared.
-
-For example:
-
-**Borivali vs Andheri**
-
-Comparison can include:
-
-- Air quality
-- Temperature
-- Vegetation
-- Heat conditions
-- Environmental risk
-- Other available environmental indicators
-
-This helps highlight how environmental conditions differ across Mumbai.
+EcoPulse aims to make environmental information easier to access, understand and compare — helping people explore their city's environmental conditions through data.
 
 ---
 
-# 🧠 System Architecture
+<div align="center">
 
-```text
-                 ┌─────────────────────────┐
-                 │     Open Data Sources   │
-                 │                         │
-                 │  Open-Meteo / CAMS      │
-                 │  Weather Data           │
-                 │  Satellite Data         │
-                 │  CPCB Standards         │
-                 └────────────┬────────────┘
-                              │
-                              ▼
-                 ┌─────────────────────────┐
-                 │    EcoPulse Backend     │
-                 │                         │
-                 │      FastAPI            │
-                 │      Python             │
-                 │      Data Adapters      │
-                 │      Environmental      │
-                 │      Analysis Engine    │
-                 └────────────┬────────────┘
-                              │
-                              ▼
-                 ┌─────────────────────────┐
-                 │   Environmental Data    │
-                 │                         │
-                 │  Air Quality             │
-                 │  Microclimate            │
-                 │  Greenery                │
-                 │  Urban Heat              │
-                 │  Forecasts               │
-                 │  Risk Analysis           │
-                 └────────────┬────────────┘
-                              │
-                              ▼
-                 ┌─────────────────────────┐
-                 │      EcoPulse UI        │
-                 │                         │
-                 │  Dashboard              │
-                 │  Charts                 │
-                 │  Maps                   │
-                 │  Comparisons             │
-                 │  Environmental Insights │
-                 └─────────────────────────┘
+### 🌍 See the Environment. Understand the Change.
+
+<sub>💚 Built with Python &nbsp; · &nbsp; 📍 Focused on Mumbai &nbsp; · &nbsp; 📊 Driven by Environmental Data</sub>
+
+</div>
